@@ -1,5 +1,3 @@
-import { ScreenPlaceholder } from '@/components/ScreenPlaceholder';
+import { ProfileScreen } from '@/features/profile/ProfileScreen';
 
-export default function ProfileScreen() {
-  return <ScreenPlaceholder title="Perfil" detail="Pantalla de la Fase 2." />;
-}
+export default ProfileScreen;

@@ -1,5 +1,3 @@
-import { ScreenPlaceholder } from '@/components/ScreenPlaceholder';
+import { GroupScreen } from '@/features/group/GroupScreen';
 
-export default function GroupsScreen() {
-  return <ScreenPlaceholder title="Grupos" detail="Pantalla de la Fase 2." />;
-}
+export default GroupScreen;

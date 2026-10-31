@@ -1,5 +1,3 @@
-import { ScreenPlaceholder } from '@/components/ScreenPlaceholder';
+import { HomeScreen } from '@/features/home/HomeScreen';
 
-export default function HomeScreen() {
-  return <ScreenPlaceholder title="Inicio" detail="Pantalla de la Fase 2." />;
-}
+export default HomeScreen;
