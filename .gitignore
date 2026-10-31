@@ -10,3 +10,10 @@ android/
 !.env.example
 .DS_Store
 coverage/
+expo-env.d.ts
+*.tsbuildinfo
+.metro-health-check*
+*.p8
+*.p12
+*.key
+*.mobileprovision

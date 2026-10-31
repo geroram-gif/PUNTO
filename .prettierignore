@@ -1,0 +1,7 @@
+design/
+docs/
+assets/
+coverage/
+.expo/
+package-lock.json
+*.md
