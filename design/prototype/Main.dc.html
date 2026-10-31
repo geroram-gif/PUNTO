@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>PUNTO. Sistema de diseño</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Sora:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#19283B}a:hover{color:#394457}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1600px; height: 2260px; box-sizing: border-box; background: #FFF8ED; color: #19283B; font-family: Inter, system-ui, sans-serif; padding: 48px; display: flex; flex-direction: column; gap: 24px">
+
+  <section style="background: #19283B; color: #FFF8ED; border-radius: 32px; padding: 48px 56px; display: flex; justify-content: space-between; align-items: flex-end; gap: 48px; position: relative; overflow: hidden">
+    <svg aria-hidden="true" width="520" height="300" viewBox="0 0 520 300" style="position: absolute; right: -40px; top: -20px; opacity: 0.18" fill="none" stroke="#FFF8ED" stroke-width="2"><rect x="20" y="20" width="480" height="260" rx="4"></rect><path d="M260 20v260M20 150h480M140 20v260M380 20v260"></path></svg>
+    <div style="display: flex; flex-direction: column; gap: 18px; position: relative">
+      <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #B7B6B1">Sistema de diseño · v0.1 · Iteración 1</p>
+      <h1 style="margin: 0; font-family: Sora, sans-serif; font-weight: 800; font-size: 128px; line-height: 0.9; letter-spacing: -0.04em">PUNTO<span style="display: inline-block; width: 0.2em; height: 0.2em; border-radius: 50%; background: #FF7855; margin-left: 0.03em"></span></h1>
+      <p style="margin: 0; font-family: Sora, sans-serif; font-weight: 700; font-size: 32px">Cada partido cuenta.</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; max-width: 460px; position: relative; font-size: 17px; line-height: 1.5; color: #E9E4DA">
+      <p style="margin: 0">Navy como estructura, cream para leer, coral para actuar. Lima y lila cuentan las estadísticas.</p>
+      <p style="margin: 0">Los números grandes son el protagonista: cada cifra se puede explicar con partidos reales.</p>
+    </div>
+  </section>
+
+  <section style="background: #FFFFFF; border: 1px solid #EDE3D3; border-radius: 28px; padding: 32px 40px; display: flex; flex-direction: column; gap: 24px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline">
+      <h2 style="margin: 0; font-family: Sora, sans-serif; font-size: 28px; font-weight: 700">Color</h2>
+      <p style="margin: 0; font-size: 14px; color: #394457">Texto sobre coral, lima y lila siempre en Night Blue (contraste 5.9:1 o más)</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px">
+      <sc-for list="{{ core }}" as="c" hint-placeholder-count="6">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div style="height: 112px; border-radius: 20px; background: {{ c.hex }}; border: 1px solid {{ c.border }}"></div>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-weight: 600; font-size: 15px">{{ c.name }}</span>
+            <span style="font-size: 13px; color: #394457; font-variant-numeric: tabular-nums">{{ c.hex }} · {{ c.token }}</span>
+            <span style="font-size: 13px; color: #5E6878">{{ c.role }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; padding-top: 8px; border-top: 1px solid #EDE3D3">
+      <sc-for list="{{ derived }}" as="c" hint-placeholder-count="6">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: {{ c.hex }}; border: 1px solid #E3D8C6; flex: none"></div>
+          <div style="display: flex; flex-direction: column">
+            <span style="font-weight: 600; font-size: 13px">{{ c.name }}</span>
+            <span style="font-size: 12px; color: #5E6878; font-variant-numeric: tabular-nums">{{ c.hex }} · {{ c.role }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="background: #FFFFFF; border: 1px solid #EDE3D3; border-radius: 28px; padding: 32px 40px; display: flex; gap: 56px">
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-family: Sora, sans-serif; font-size: 28px; font-weight: 700">Tipografía</h2>
+      <div style="display: flex; align-items: baseline; gap: 24px; flex-wrap: wrap">
+        <span style="font-family: Sora, sans-serif; font-weight: 800; font-size: 120px; line-height: 0.9; letter-spacing: -0.04em; font-variant-numeric: tabular-nums">64%</span>
+        <span style="font-family: Sora, sans-serif; font-weight: 800; font-size: 72px; line-height: 0.9; letter-spacing: -0.03em; font-variant-numeric: tabular-nums">8-2</span>
+      </div>
+      <p style="margin: 0; font-size: 14px; color: #394457; line-height: 1.5">Sora para títulos y números protagonistas. Inter para interfaz y lectura. Todas las cifras comparables con numerales tabulares.</p>
+    </div>
+    <div style="flex: 1.3; display: flex; flex-direction: column">
+      <sc-for list="{{ type }}" as="t" hint-placeholder-count="7">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid #F1E8DA">
+          <span style="font-family: {{ t.family }}; font-weight: {{ t.weight }}; font-size: {{ t.size }}px; line-height: 1.1; letter-spacing: {{ t.track }}">{{ t.sample }}</span>
+          <span style="font-size: 12px; color: #5E6878; white-space: nowrap; font-variant-numeric: tabular-nums">{{ t.spec }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="background: #FFFFFF; border: 1px solid #EDE3D3; border-radius: 28px; padding: 32px 40px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 48px">
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-family: Sora, sans-serif; font-size: 22px; font-weight: 700">Espaciado · base 4</h2>
+      <div style="display: flex; align-items: flex-end; gap: 10px">
+        <sc-for list="{{ spacing }}" as="s" hint-placeholder-count="8">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+            <div style="width: {{ s.v }}px; height: {{ s.v }}px; background: #FF7855; border-radius: 3px"></div>
+            <span style="font-size: 12px; color: #394457; font-variant-numeric: tabular-nums">{{ s.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #5E6878; line-height: 1.5">Margen de pantalla 20. Entre tarjetas 12–16. Dentro de tarjetas 16–24. Touch mínimo 44.</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-family: Sora, sans-serif; font-size: 22px; font-weight: 700">Radios</h2>
+      <div style="display: flex; align-items: flex-end; gap: 14px">
+        <sc-for list="{{ radii }}" as="r" hint-placeholder-count="5">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+            <div style="width: 56px; height: 56px; background: #DCEB82; border-radius: {{ r.v }}px; border: 1px solid #C9D86E"></div>
+            <span style="font-size: 12px; color: #394457">{{ r.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #5E6878; line-height: 1.5">Chips 999 · inputs 14 · tarjetas 20 · héroes 28 · hojas modales 28 arriba.</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-family: Sora, sans-serif; font-size: 22px; font-weight: 700">Elevación</h2>
+      <div style="display: flex; gap: 16px">
+        <div style="flex: 1; height: 72px; border-radius: 20px; background: #FFF8ED; border: 1px solid #EDE3D3; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #394457">Plano</div>
+        <div style="flex: 1; height: 72px; border-radius: 20px; background: #FFFFFF; box-shadow: 0 1px 0 rgba(25,40,59,0.06), 0 10px 24px -14px rgba(25,40,59,0.35); display: flex; align-items: center; justify-content: center; font-size: 13px; color: #394457">Tarjeta</div>
+        <div style="flex: 1; height: 72px; border-radius: 20px; background: #FFFFFF; box-shadow: 0 24px 48px -20px rgba(25,40,59,0.45); display: flex; align-items: center; justify-content: center; font-size: 13px; color: #394457">Hoja</div>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #5E6878; line-height: 1.5">Sobre navy no hay sombras: la jerarquía sale del color de superficie.</p>
+    </div>
+  </section>
+
+  <section style="background: #FFFFFF; border: 1px solid #EDE3D3; border-radius: 28px; padding: 28px 40px; display: flex; align-items: center; gap: 40px">
+    <div style="display: flex; flex-direction: column; gap: 6px; width: 260px; flex: none">
+      <h2 style="margin: 0; font-family: Sora, sans-serif; font-size: 22px; font-weight: 700">Iconografía</h2>
+      <p style="margin: 0; font-size: 13px; color: #5E6878; line-height: 1.5">24 px, trazo 1.75, puntas redondeadas. Siempre con etiqueta o aria-label.</p>
+    </div>
+    <div style="display: flex; gap: 28px; flex-wrap: wrap; color: #19283B" aria-hidden="true">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.9.7 3.1 2.5 3.5 5.2"></path></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v8M8 12h8"></path></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6"></path></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0z"></path><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9 17h6"></path></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3 5 13.5h6L10 21l8-10.5h-6z"></path></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"></path><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"></path></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5v.01"></path></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"></path></svg>
+    </div>
+  </section>
+
+  <section style="flex: 1; background: #19283B; color: #FFF8ED; border-radius: 28px; padding: 32px 40px; display: flex; flex-direction: column; gap: 24px">
+    <h2 style="margin: 0; font-family: Sora, sans-serif; font-size: 28px; font-weight: 700">Componentes base</h2>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px">
+
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <p style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #B7B6B1">Button · primary / secondary / ghost</p>
+        <button type="button" style="height: 54px; border: 0; border-radius: 999px; background: #FF7855; color: #19283B; font-weight: 700; font-size: 16px">Cargar partido</button>
+        <button type="button" style="height: 54px; border: 1.5px solid #FFF8ED; border-radius: 999px; background: transparent; color: #FFF8ED; font-weight: 600; font-size: 16px">Ver cara a cara</button>
+        <button type="button" disabled style="height: 54px; border: 0; border-radius: 999px; background: #2E3F55; color: #8F98A6; font-weight: 600; font-size: 16px">Confirmar (deshabilitado)</button>
+        <p style="margin: 6px 0 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #B7B6B1">SectionTabs · Chip</p>
+        <div style="display: flex; gap: 6px; background: #22344B; border-radius: 999px; padding: 4px">
+          <span style="flex: 1; text-align: center; padding: 10px 0; border-radius: 999px; background: #FFF8ED; color: #19283B; font-weight: 600; font-size: 14px">Resumen</span>
+          <span style="flex: 1; text-align: center; padding: 10px 0; font-weight: 500; font-size: 14px; color: #E9E4DA">Ranking</span>
+          <span style="flex: 1; text-align: center; padding: 10px 0; font-weight: 500; font-size: 14px; color: #E9E4DA">Partidos</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <p style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #B7B6B1">StatHighlight · WinRate / Streak / Insight</p>
+        <div style="background: #FFF8ED; color: #19283B; border-radius: 28px; padding: 20px 22px; display: flex; align-items: flex-end; justify-content: space-between">
+          <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; font-weight: 600">% de victorias · Global</span><span style="font-size: 13px; color: #394457">22 partidos · 14 G · 8 P</span></div>
+          <span style="font-family: Sora, sans-serif; font-weight: 800; font-size: 64px; line-height: 0.85; letter-spacing: -0.04em">64%</span>
+        </div>
+        <div style="background: #DCEB82; color: #19283B; border-radius: 20px; padding: 16px 20px; display: flex; align-items: center; gap: 16px">
+          <span style="font-family: Sora, sans-serif; font-weight: 800; font-size: 48px; line-height: 0.9">3</span>
+          <div style="display: flex; flex-direction: column"><span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 18px">al hilo.</span><span style="font-size: 13px">Racha actual ganando</span></div>
+        </div>
+        <div style="background: #B9A6F2; color: #19283B; border-radius: 20px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between">
+          <div style="display: flex; flex-direction: column"><span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 18px">Hay historial.</span><span style="font-size: 13px">Vs Nico · 10 cruces</span></div>
+          <span style="font-family: Sora, sans-serif; font-weight: 800; font-size: 40px; font-variant-numeric: tabular-nums">8-2</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <p style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #B7B6B1">PlayerAvatar · RankingRow · Provisional</p>
+        <div style="display: flex; gap: 14px; align-items: center">
+          <span style="width: 44px; height: 44px; border-radius: 50%; background: #FF7855; color: #19283B; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px">TG</span>
+          <span style="width: 44px; height: 44px; border-radius: 50%; background: #B9A6F2; color: #19283B; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px">FP</span>
+          <span style="width: 44px; height: 44px; border-radius: 50%; border: 1.5px dashed #B7B6B1; color: #FFF8ED; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; box-sizing: border-box">PI</span>
+          <span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; border: 1px dashed #B7B6B1; color: #E9E4DA">Invitado</span>
+        </div>
+        <div style="background: #FFF8ED; color: #19283B; border-radius: 20px; padding: 6px 16px; display: flex; flex-direction: column">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #EDE3D3">
+            <span style="width: 22px; font-family: Sora, sans-serif; font-weight: 800; font-size: 18px">1</span>
+            <span style="width: 32px; height: 32px; border-radius: 50%; background: #B9A6F2; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px">FP</span>
+            <span style="flex: 1; font-weight: 600; font-size: 15px">Fran</span>
+            <span style="font-size: 13px; color: #394457; font-variant-numeric: tabular-nums">15 PJ</span>
+            <span style="width: 48px; text-align: right; font-family: Sora, sans-serif; font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums">73%</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0">
+            <span style="width: 22px; font-size: 13px; color: #394457">—</span>
+            <span style="width: 32px; height: 32px; border-radius: 50%; border: 1.5px dashed #5E6878; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; box-sizing: border-box">PI</span>
+            <span style="flex: 1; font-weight: 600; font-size: 15px">Pipo</span>
+            <span style="font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: #F3EBDD">Provisorio · 4 de 5</span>
+          </div>
+        </div>
+        <p style="margin: 6px 0 0; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #B7B6B1">SetScoreInput</p>
+        <div style="background: #FFF8ED; color: #19283B; border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between">
+          <span style="font-size: 14px; font-weight: 600">Set 1</span>
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span style="width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #19283B; display: flex; align-items: center; justify-content: center; font-size: 18px">−</span>
+            <span style="font-family: Sora, sans-serif; font-weight: 800; font-size: 26px; width: 24px; text-align: center">6</span>
+            <span style="width: 36px; height: 36px; border-radius: 50%; background: #19283B; color: #FFF8ED; display: flex; align-items: center; justify-content: center; font-size: 18px">+</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background: #FFFFFF; border: 1px solid #EDE3D3; border-radius: 28px; padding: 32px 40px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px">
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-family: Sora, sans-serif; font-size: 22px; font-weight: 700">Tokens semánticos</h2>
+      <sc-for list="{{ semantic }}" as="s" hint-placeholder-count="8">
+        <div style="display: flex; align-items: center; gap: 10px; font-size: 13px">
+          <span style="width: 22px; height: 22px; border-radius: 7px; background: {{ s.hex }}; border: 1px solid #E3D8C6; flex: none"></span>
+          <span style="font-weight: 600; font-family: ui-monospace, Menlo, monospace; font-size: 12px; flex: 1">{{ s.token }}</span>
+          <span style="color: #5E6878">{{ s.use }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-family: Sora, sans-serif; font-size: 22px; font-weight: 700">MatchCard · Toast</h2>
+      <div style="background: #FFFFFF; border: 1px solid #EDE3D3; border-radius: 20px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #394457"><span>Jue 29 oct</span><span>Mejor de 3</span></div>
+        <div style="display: flex; align-items: center; gap: 8px"><span style="flex: 1; font-weight: 700; font-size: 15px">Tomi y Fran</span><span style="font-size: 11px; font-weight: 700; padding: 3px 7px; border-radius: 6px; background: #DCEB82">GANARON</span><span style="width: 26px; text-align: center; font-family: Sora, sans-serif; font-weight: 700; font-size: 17px">6</span><span style="width: 26px; text-align: center; font-family: Sora, sans-serif; font-weight: 700; font-size: 17px">6</span></div>
+        <div style="display: flex; align-items: center; gap: 8px; color: #394457"><span style="flex: 1; font-size: 15px">Nico y Lean</span><span style="width: 26px; text-align: center; font-family: Sora, sans-serif; font-weight: 600; font-size: 17px">4</span><span style="width: 26px; text-align: center; font-family: Sora, sans-serif; font-weight: 600; font-size: 17px">3</span></div>
+      </div>
+      <div style="background: #19283B; color: #FFF8ED; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; font-size: 14px"><span style="width: 24px; height: 24px; border-radius: 50%; background: #DCEB82; color: #19283B; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex: none">✓</span>Partido corregido. Ranking recalculado.</div>
+      <p style="margin: 0; font-size: 13px; color: #5E6878; line-height: 1.5">Ganadores siempre arriba; sets en columnas fijas de 26 px. Toda la tarjeta es un botón que abre el detalle.</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-family: Sora, sans-serif; font-size: 22px; font-weight: 700">BottomSheet · AppTabBar</h2>
+      <div style="background: #FFF8ED; border: 1px solid #EDE3D3; border-radius: 28px 28px 0 0; padding: 10px 18px 16px; display: flex; flex-direction: column; gap: 10px">
+        <span style="align-self: center; width: 40px; height: 5px; border-radius: 999px; background: #E3D8C6"></span>
+        <span style="font-family: Sora, sans-serif; font-weight: 700; font-size: 18px">¿Borrar este partido?</span>
+        <span style="height: 44px; border-radius: 999px; background: #19283B; color: #FFF8ED; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px">Sí, borrar partido</span>
+      </div>
+      <div style="background: #19283B; border-radius: 16px; padding: 8px 10px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); color: #B7B6B1; font-size: 11px; text-align: center">
+        <span style="color: #FFF8ED; font-weight: 600; padding: 6px 0">Inicio</span><span style="padding: 6px 0">Grupos</span><span style="display: flex; flex-direction: column; align-items: center; gap: 3px; color: #FFF8ED; font-weight: 600"><span style="width: 44px; height: 24px; border-radius: 999px; background: #FF7855; color: #19283B; font-size: 16px; line-height: 24px">+</span>Partido</span><span style="padding: 6px 0">Perfil</span>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #5E6878; line-height: 1.5">Una sola acción principal: Partido, en coral, siempre en la barra. Las hojas modales cierran con fondo, X o deslizando.</p>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":2260}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      core: [
+        { name: 'Night Blue', hex: '#19283B', token: 'navy', role: 'Estructura, fondos oscuros, texto principal', border: '#19283B' },
+        { name: 'Punto Coral', hex: '#FF7855', token: 'coral', role: 'Acción principal, marca, el punto', border: '#FF7855' },
+        { name: 'Warm Cream', hex: '#FFF8ED', token: 'cream', role: 'Superficies de lectura, texto sobre navy', border: '#E3D8C6' },
+        { name: 'Match Lime', hex: '#DCEB82', token: 'lime', role: 'Rachas, victorias, logros', border: '#DCEB82' },
+        { name: 'Social Lilac', hex: '#B9A6F2', token: 'lilac', role: 'Rivalidades, duplas, lo social', border: '#B9A6F2' },
+        { name: 'Graphite', hex: '#394457', token: 'graphite', role: 'Texto secundario sobre cream', border: '#394457' }
+      ],
+      derived: [
+        { name: 'Navy 2', hex: '#22344B', role: 'superficie sobre navy' },
+        { name: 'Navy línea', hex: '#2E3F55', role: 'bordes y divisores' },
+        { name: 'Niebla', hex: '#B7B6B1', role: 'texto 2° sobre navy' },
+        { name: 'Cream 2', hex: '#F3EBDD', role: 'chips sobre cream' },
+        { name: 'Cream línea', hex: '#EDE3D3', role: 'bordes sobre cream' },
+        { name: 'Pizarra', hex: '#5E6878', role: 'texto 3° sobre cream' }
+      ],
+      type: [
+        { sample: 'Display XL', family: 'Sora', weight: 800, size: 56, track: '-0.04em', spec: 'Sora 800 · 56–120 · números héroe' },
+        { sample: 'Display L', family: 'Sora', weight: 800, size: 40, track: '-0.03em', spec: 'Sora 800 · 40 · títulos de pantalla' },
+        { sample: 'Título', family: 'Sora', weight: 700, size: 28, track: '-0.01em', spec: 'Sora 700 · 28 · secciones' },
+        { sample: 'Titular de tarjeta', family: 'Sora', weight: 700, size: 20, track: '0', spec: 'Sora 700 · 20' },
+        { sample: 'Cuerpo de interfaz', family: 'Inter', weight: 500, size: 16, track: '0', spec: 'Inter 400/500 · 16 / 1.45' },
+        { sample: 'Secundario y metadatos', family: 'Inter', weight: 400, size: 14, track: '0', spec: 'Inter 400 · 14' },
+        { sample: 'ETIQUETA DE SECCIÓN', family: 'Inter', weight: 600, size: 12, track: '0.08em', spec: 'Inter 600 · 12 · mayúsculas, uso escaso' }
+      ],
+      spacing: [4, 8, 12, 16, 20, 24, 32, 48].map(v => ({ v })),
+      semantic: [
+        { token: 'surface.app', hex: '#19283B', use: 'fondo de pantallas oscuras' },
+        { token: 'surface.read', hex: '#FFF8ED', use: 'fondo de lectura' },
+        { token: 'surface.card', hex: '#FFFFFF', use: 'tarjetas sobre cream' },
+        { token: 'surface.raised', hex: '#22344B', use: 'tarjetas sobre navy' },
+        { token: 'action.primary', hex: '#FF7855', use: 'Partido, confirmar' },
+        { token: 'stat.win', hex: '#DCEB82', use: 'victorias, rachas, vos' },
+        { token: 'stat.social', hex: '#B9A6F2', use: 'rivalidades, duplas' },
+        { token: 'state.provisional', hex: '#F3EBDD', use: 'provisorio, avisos' }
+      ],
+      radii: [
+        { v: 8, label: '8' }, { v: 14, label: '14' }, { v: 20, label: '20' }, { v: 28, label: '28' }, { v: 999, label: 'pill' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

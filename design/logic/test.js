@@ -1,0 +1,20 @@
+const S=require('./engine.js'), D=require('./seed.js');
+const ms=D.matches, P=D.players, eq=(a,b,l)=>{ if(JSON.stringify(a)!==JSON.stringify(b)){console.log('FAIL',l,a,'!=',b);process.exitCode=1}};
+const t=S.playerStats(ms,'tomi'); eq([t.pj,t.g,t.p,t.pct,t.setsW,t.setsL,t.setsPct,t.streak,t.best],[22,14,8,64,32,20,62,{type:'W',n:3},5],'tomi global');
+const J=D.groups[0], Pb=D.groups[1], mj=ms.filter(m=>m.groupId=='jueves'), mp=ms.filter(m=>m.groupId=='pibes');
+eq([mj.length,mp.length],[24,12],'counts');
+const rj=S.groupRanking(mj,J,P); console.log('J', rj.qualified.map(r=>`${r.pos}${r.tied?'=':''} ${r.id} ${r.pj}/${r.g} ${r.pct}`).join(' | '), 'prov', rj.provisional.map(r=>r.id+' '+r.pj+'/'+r.g).join(','));
+const rp=S.groupRanking(mp,Pb,P); console.log('P', rp.qualified.map(r=>`${r.pos}${r.tied?'=':''} ${r.id} ${r.pj}/${r.g} ${r.pct}`).join(' | '), 'prov', rp.provisional.map(r=>r.id+' '+r.pj+'/'+r.g).join(','));
+const tj=S.playerStats(mj,'tomi'), tp=S.playerStats(mp,'tomi'); eq([tj.pj,tj.g,tj.pct,tp.pj,tp.g,tp.pct],[14,9,64,8,5,63],'tomi groups');
+const h=S.h2h(ms,'tomi','nico'); eq([h.total,h.aW,h.bW,h.together.n],[10,8,2,0],'h2h nico'); console.log('nico meetings', h.meetings.slice(0,4).map(x=>x.m.date+(x.aWon?'W':'L')).join(' '));
+const hf=S.h2h(ms,'tomi','fran'); eq([hf.total,hf.aW,hf.together.n,hf.together.w],[3,1,5,4],'h2h fran');
+console.log('pipo', JSON.stringify(S.h2h(ms,'tomi','pipo')).slice(0,80));
+const dj=S.duoStats(mj); console.log('duos J', dj.qualified.map(d=>d.ids.join('+')+' '+d.n+'/'+d.w+' '+d.pct).join(' | ')); console.log('prov J', dj.provisional.map(d=>d.ids.join('+')+' '+d.n+'/'+d.w).join(' | '));
+const dp=S.duoStats(mp); console.log('duos P', dp.qualified.map(d=>d.ids.join('+')+' '+d.n+'/'+d.w+' '+d.pct).join(' | '));
+const pr=S.partnersAndRivals(ms,'tomi'); console.log('partners', pr.partners.slice(0,4).map(x=>x.id+' '+x.n+'/'+x.w).join(', ')); console.log('rivals', pr.rivals.slice(0,5).map(x=>x.id+' '+x.n+'/'+x.w).join(', '));
+console.log('tomi opponents never faced in pibes', Pb.members.filter(x=>x!='tomi' && !S.h2h(mp,'tomi',x).total && !S.h2h(mp,'tomi',x).together.n));
+console.log('last5', S.newestFirst(t.matches).slice(0,5).map(m=>m.date).join(' '));
+// all seed winners are team A
+ms.forEach(m=>{ if(S.winnerOf(m)!=='A') console.log('winner not A', m.id) });
+console.log(S.fmtShort('2026-10-29'), S.relDay('2026-10-25','2026-10-31'), S.fmtMonthYear(t.first));
+console.log(S.h2hHeadline(h,'Tomi','Nico'), S.h2hHeadline(hf,'Tomi','Fran'));

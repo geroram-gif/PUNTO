@@ -1,0 +1,24 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-10-31T17:35:00Z"},
+  "title": "PUNTO. Iteración 1",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1600, "h": 2260, "title": "Sistema de diseño"},
+    "App.dc.html": {"x": 0, "y": 2603, "w": 390, "h": 844, "title": "Prototipo completo · empezá acá", "is_interactive": true, "radius": 44},
+    "Home.dc.html": {"x": 470, "y": 2603, "w": 390, "h": 844, "title": "01 · Inicio", "is_interactive": true, "radius": 44},
+    "Grupo.dc.html": {"x": 940, "y": 2603, "w": 390, "h": 844, "title": "02 · Grupo", "is_interactive": true, "radius": 44},
+    "Registrar.dc.html": {"x": 1410, "y": 2603, "w": 390, "h": 844, "title": "03 · Registrar partido", "is_interactive": true, "radius": 44},
+    "Resultado.dc.html": {"x": 1880, "y": 2603, "w": 390, "h": 844, "title": "04 · Resultado", "is_interactive": true, "radius": 44},
+    "Perfil.dc.html": {"x": 2350, "y": 2603, "w": 390, "h": 844, "title": "05 · Perfil global", "is_interactive": true, "radius": 44},
+    "H2H.dc.html": {"x": 2820, "y": 2603, "w": 390, "h": 844, "title": "06 · Cara a cara", "is_interactive": true, "radius": 44},
+    "Estados.dc.html": {"x": 0, "y": 3790, "w": 2700, "h": 1060, "title": "Estados límite (referencia estática)"}
+  },
+  "order": ["Main.dc.html", "App.dc.html", "Home.dc.html", "Grupo.dc.html", "Registrar.dc.html", "Resultado.dc.html", "Perfil.dc.html", "H2H.dc.html", "Estados.dc.html"],
+  "notes": {
+    "t1": {"x": 0, "y": 2343, "text": "Prototipo · 6 pantallas con datos compartidos", "kind": "title1", "maxW": 3210},
+    "t2": {"x": 0, "y": 3530, "text": "Estados límite", "kind": "title1", "maxW": 2700}
+  },
+  "designSystems": []
+}
