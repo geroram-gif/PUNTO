@@ -40,3 +40,8 @@ export const motion = {
   sheet: { duration: 280, bezier: [0.2, 0.8, 0.2, 1] },
   celebration: { popDuration: 550, dotsDuration: 1200 },
 } as const;
+
+/** Sombras del prototipo que no figuran en tokens.json. */
+export const protoShadow = {
+  toast: '0 16px 32px -16px rgba(0,0,0,0.5)',
+} as const;

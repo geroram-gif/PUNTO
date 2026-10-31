@@ -1,4 +1,4 @@
-export { palette, colors, avatarTextColor, type PaletteColor } from './colors';
+export { palette, colors, protoColors, avatarTextColor, type PaletteColor } from './colors';
 export {
   fontFamily,
   typography,
@@ -7,5 +7,5 @@ export {
   tabularNums,
   type TypographyVariant,
 } from './typography';
-export { space, layout, radius, shadow, motion } from './layout';
+export { space, layout, radius, shadow, motion, protoShadow } from './layout';
 export { fontAssets } from './fonts';
