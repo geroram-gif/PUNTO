@@ -23,7 +23,8 @@
           "backgroundColor": "#19283B"
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "@react-native-community/datetimepicker"
     ]
   }
 }

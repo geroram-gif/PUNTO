@@ -1,3 +1,4 @@
+import { router, type Href } from 'expo-router';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
@@ -11,6 +12,12 @@ import { colors, fontFamily, layout, palette, radius, typography } from '@/theme
  */
 
 type RouteItem = { kind: 'route'; route: 'index' | 'groups' | 'profile'; label: string };
+
+const HREF: Record<RouteItem['route'], Href> = {
+  index: '/',
+  groups: '/groups',
+  profile: '/profile',
+};
 type ActionItem = { kind: 'register'; label: string };
 
 const ITEMS: readonly (RouteItem | ActionItem)[] = [
@@ -35,7 +42,6 @@ export type AppTabBarProps = BottomTabBarProps & {
 export function AppTabBar({
   state,
   emitter,
-  navigateToTab,
   insets,
   onRegister,
   registerAccessibilityLabel = 'Partido: registrar un partido',
@@ -77,7 +83,8 @@ export function AppTabBar({
             target: route.key,
             canPreventDefault: true,
           });
-          if (!focused && !event.defaultPrevented) navigateToTab(route.key);
+          // Como `tab()` del prototipo: cada pestaña vuelve a su pantalla raíz.
+          if (!event.defaultPrevented) router.navigate(HREF[item.route]);
         };
         const onLongPress = () => emitter.emit({ type: 'tabLongPress', target: route.key });
 

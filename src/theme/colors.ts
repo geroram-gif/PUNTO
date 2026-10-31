@@ -66,3 +66,20 @@ export const colors = {
 export function avatarTextColor(background: string): string {
   return background === palette.graphite ? palette.cream : palette.navy;
 }
+
+/**
+ * Tonos que usa el prototipo aprobado (design/prototype/App.dc.html) y no figuran en tokens.json.
+ * Se centralizan acá para no hardcodearlos en los componentes.
+ */
+export const protoColors = {
+  /** Texto secundario cálido sobre navy (descripciones de estados vacíos, subtítulos). */
+  sand: '#E9E4DA',
+  /** Bordes de chips inactivos y lugares vacíos sobre navy. */
+  steel: '#4A5A70',
+  /** Borde de inputs y chips sobre crema; manija de la hoja modal. */
+  creamEdge: '#E3D8C6',
+  /** Divisor de filas sobre fondo claro. */
+  creamRule: '#F1E8DA',
+  /** Fondo detrás de las hojas modales (navy al 60%). */
+  backdrop: 'rgba(25,40,59,0.6)',
+} as const;
