@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "PUNTO.",
+    "slug": "punto",
+    "scheme": "punto",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#19283B",
+    "ios": {
+      "supportsTablet": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#19283B"
+        }
+      ],
+      "expo-asset"
+    ]
+  }
+}
