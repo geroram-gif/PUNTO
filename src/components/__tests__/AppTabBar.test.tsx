@@ -33,8 +33,8 @@ describe('AppTabBar', () => {
   });
 
   it('el cara a cara vive dentro de Grupos y deja esa pestaña activa', async () => {
-    await renderRouter(APP_DIR, { initialUrl: '/groups/jueves/h2h/nico' });
-    expect(screen).toHavePathname('/groups/jueves/h2h/nico');
+    await renderRouter(APP_DIR, { initialUrl: '/groups/h2h?rival=nico&group=jueves' });
+    expect(screen).toHavePathname('/groups/h2h');
     expect(screen.getByRole('tab', { name: 'Grupos' })).toBeSelected();
   });
 });
