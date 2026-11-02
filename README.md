@@ -22,7 +22,9 @@ npm install
 npm start
 ```
 
-Escaneá el QR con la cámara del iPhone (Expo Go) o apretá `i` para abrir el simulador de iOS. No hace falta ningún `.env`: la app corre sin backend, con los datos demo del prototipo (Tomi, «Los del Jueves» y «Los Pibes», 36 partidos) y el «hoy» fijo del prototipo (31/10/2026).
+Escaneá el QR con la cámara del iPhone (Expo Go) o apretá `i` para abrir el simulador de iOS.
+
+Sin configurar nada, la app corre en **modo demo**: sin ingreso, con los datos del prototipo (Tomi, «Los del Jueves» y «Los Pibes», 36 partidos) y el «hoy» fijo del prototipo (31/10/2026). Con `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY` corre con **cuentas y datos reales** (ver [`docs/supabase.md`](docs/supabase.md)).
 
 ### Estados de la demo
 
@@ -48,7 +50,7 @@ Los cara a cara de referencia: Nico (historial), Pipo (muestra chica), Gonza en 
 | `npm run typecheck` | `tsc --noEmit` con TypeScript estricto |
 | `npm run lint` | ESLint (`eslint-config-expo` + Prettier) |
 | `npm run format` / `npm run format:check` | Prettier |
-| `npm test` | Jest (`jest-expo`): motor, tokens, view-models, store, navegación y el recorrido completo |
+| `npm test` | Jest (`jest-expo`): motor, tokens, view-models, store, navegación, recorridos y base de datos (migraciones, RLS y RPC en un Postgres embebido, sin instalar nada) |
 | `npm run test:engine-original` | El script original `design/logic/test.js` |
 | `npm run check` | Todo lo anterior salvo el script original, en orden |
 
@@ -58,7 +60,7 @@ CI (GitHub Actions) corre lo mismo en cada PR.
 
 ```
 app/                        Rutas de Expo Router (solo importan la pantalla de src/features)
-  _layout.tsx               Raíz: fuentes, áreas seguras, store demo, hoja de detalle y toast globales
+  _layout.tsx               Raíz: fuentes, store, y según la sesión: ingreso, perfil, carga/error o la app
   (tabs)/                   Barra inferior (AppTabBar): Inicio, Grupos, Perfil
     index.tsx               01 Inicio
     groups/index.tsx        02 Grupo (el grupo abierto vive en el store, como en el prototipo)
@@ -66,14 +68,22 @@ app/                        Rutas de Expo Router (solo importan la pantalla de s
     profile.tsx             05 Perfil global
   match/new.tsx             03 Registrar partido (?group= o ?edit=<id> para corregir)
   result/[id].tsx           04 Resultado
+  group/new.tsx             Crear un grupo
+  join.tsx                  Unirse con una invitación (?code=)
+  profile-edit.tsx          Editar perfil
 src/
   components/               Componentes con los nombres de data-component (MatchCard, RankingRow, BottomSheet…)
   components/ui/            Primitivas: Txt, Icon, Button, etiquetas, Wordmark
   features/<pantalla>/      Pantalla + view-model puro (vm.ts) por pantalla
   features/shared/ctx.ts    Helpers de presentación compartidos (port de renderVals)
   lib/stats/                Motor de estadísticas puro + tests (port de design/logic/engine.js)
-  lib/store/                Store local (Context + reducer): agregar, corregir, borrar, invitados
+  lib/store/                Store (Context + reducer): demo en memoria o con cuenta (Supabase)
+  lib/supabase/             Cliente, ingreso por código, RPC tipadas y validación de la respuesta
   lib/demo/seed.ts          Datos demo (port de design/logic/seed.js)
+supabase/
+  migrations/               Esquema, funciones/RPC y seguridad (RLS) en SQL
+  tests/                    Tests de la base de datos (Postgres embebido)
+  templates/                Mails con el código de ingreso
   theme/                    Tokens de design/tokens.json + tonos del prototipo que no están ahí
 design/                     Handoff original de diseño. Referencia: no se modifica.
 ```
