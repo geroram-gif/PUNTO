@@ -5,3 +5,4 @@ export { WinTag, MeTag, GuestTag } from './Tag';
 export { Wordmark } from './Wordmark';
 export { useTopInset } from './insets';
 export { useReduceMotion } from './motion';
+export { TextField } from './TextField';

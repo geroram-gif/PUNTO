@@ -165,3 +165,28 @@ export class Db {
 
 /** Uuid de prueba legible: u(1) → 00000000-0000-0000-0000-000000000001 */
 export const u = (n: number) => `00000000-0000-0000-0000-${String(n).padStart(12, '0')}`;
+
+/**
+ * Un "cliente de Supabase" para la app que habla con esta base: cada llamada se ejecuta como el
+ * usuario actual (rol `authenticated` + `auth.uid()`), igual que PostgREST. Los errores vuelven
+ * con el mismo formato ({ message, code }) que los de supabase-js. Requiere estar dentro de una
+ * transacción (los tests hacen begin/rollback).
+ */
+export function rpcClient(db: Db, currentUser: () => string | null) {
+  return {
+    /** Cada llamada es su propia "transacción" (savepoint): un error no arrastra a las siguientes. */
+    async rpc(fn: string, args: Record<string, unknown> = {}) {
+      await db.exec('savepoint rpc_call');
+      try {
+        await db.as(currentUser());
+        const data = await db.rpc(fn, args);
+        await db.exec('release savepoint rpc_call');
+        return { data, error: null };
+      } catch (e) {
+        const err = e as DbError;
+        await db.exec('rollback to savepoint rpc_call');
+        return { data: null, error: { message: err.message, code: err.code } };
+      }
+    },
+  };
+}

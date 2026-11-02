@@ -141,7 +141,7 @@ export function MatchSheetHost() {
               </Txt>
             </View>
           ) : null}
-          <Button label="Sí, borrar partido" tone="dark" onPress={del} />
+          <Button label="Sí, borrar partido" tone="dark" onPress={() => void del()} />
           <Button label="Cancelar" tone="outline" height={50} onPress={onClose} />
         </View>
       ) : null}

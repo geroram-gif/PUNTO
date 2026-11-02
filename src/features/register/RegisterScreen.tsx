@@ -336,7 +336,7 @@ export function RegisterScreen() {
               name={draft.guestName}
               error={draft.guestErr}
               onChange={(v) => update((d) => ({ ...d, guestName: v, guestErr: '' }))}
-              onSubmit={addGuest}
+              onSubmit={() => void addGuest()}
             />
           ) : null}
           {draft.notice ? (
@@ -461,7 +461,7 @@ export function RegisterScreen() {
               size={17}
               loading={saving}
               disabled={saving}
-              onPress={confirmSave}
+              onPress={() => void confirmSave()}
             />
             <Button
               label="Editar"
