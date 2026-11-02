@@ -5,7 +5,7 @@ import { palette } from '@/theme';
 import { Icon, Txt } from './ui';
 
 /** Error de guardado: conserva lo cargado y ofrece reintentar. */
-export function ErrorState() {
+export function ErrorState({ message }: { message?: string }) {
   return (
     <View
       accessibilityRole="alert"
@@ -26,7 +26,7 @@ export function ErrorState() {
         <Txt w={700} s={14} lh={1.4}>
           No se pudo guardar.
         </Txt>{' '}
-        Revisá tu conexión y probá de nuevo. Lo que cargaste sigue acá.
+        {message ?? 'Revisá tu conexión y probá de nuevo.'} Lo que cargaste sigue acá.
       </Txt>
     </View>
   );

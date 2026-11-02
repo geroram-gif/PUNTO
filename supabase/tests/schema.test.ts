@@ -44,7 +44,7 @@ describe('migraciones', () => {
     expect(rows.filter((r) => !r.relrowsecurity)).toEqual([]);
   });
 
-  it('el alta de un usuario crea su perfil y su jugador (con iniciales del mail)', async () => {
+  it('el alta de un usuario crea su perfil y su jugador con un nombre genérico (no se filtra el mail)', async () => {
     const p = await createUsers(db, ['tomi']);
     await db.admin();
     const r = await db.query(
@@ -52,7 +52,7 @@ describe('migraciones', () => {
       [p.tomi],
     );
     expect(r).toEqual([
-      { display_name: 'tomi', initials: 'TO', is_guest: false, avatar_color: '#FF7855' },
+      { display_name: 'Jugador', initials: 'JU', is_guest: false, avatar_color: '#FF7855' },
     ]);
     const prof = await db.query(
       'select onboarding_completed_at from public.profiles where id = $1',

@@ -230,10 +230,15 @@ describe('invitaciones y pedidos de ingreso', () => {
 
     await db.as(uid('fran')); // cualquier miembro puede compartir el link
     const code = await db.rpc<string>('get_group_invite', { p_group_id: jueves });
-    expect(code).toMatch(/^[0-9A-F]{12}$/);
+    expect(code).toMatch(/^[0-9A-F]{16}$/);
     expect(await db.rpc<string>('get_group_invite', { p_group_id: jueves })).toBe(code); // estable
 
     await db.as(uid('extra'));
+    await db.rpc('update_profile', {
+      p_display_name: 'Extra',
+      p_full_name: 'Extra Sosa',
+      p_avatar_color: '#DCEB82',
+    });
     const prev = await db.rpc<{ groupName: string; members: number; alreadyMember: boolean }>(
       'preview_invite',
       { p_code: code.toLowerCase() },
@@ -251,7 +256,7 @@ describe('invitaciones y pedidos de ingreso', () => {
     expect((await snapshot('fran')).pendingRequests).toEqual([]);
     const pend = (await snapshot('tomi')).pendingRequests;
     expect(pend).toHaveLength(1);
-    expect(pend[0].name).toBe('extra');
+    expect(pend[0].name).toBe('Extra');
     await db.as(uid('fran'));
     await fails(
       () => db.rpc('decide_join_request', { p_request_id: pend[0].id, p_approve: true }),
@@ -280,7 +285,7 @@ describe('invitaciones y pedidos de ingreso', () => {
     expect(s.matches).toHaveLength(1);
   });
 
-  it('un pedido rechazado no da acceso y se puede volver a pedir', async () => {
+  it('un pedido rechazado no da acceso y se puede volver a pedir pasada la espera', async () => {
     const { jueves } = await scenario();
     await db.as(uid('tomi'));
     const code = await db.rpc<string>('get_group_invite', { p_group_id: jueves });
@@ -292,6 +297,11 @@ describe('invitaciones y pedidos de ingreso', () => {
       'rejected',
     );
     expect((await snapshot('extra')).groups).toEqual([]);
+    await db.as(uid('extra'));
+    // Tras un rechazo hay que esperar para volver a pedir (evita el spam al admin).
+    await fails(() => db.rpc('request_join', { p_code: code }), '22023', /rechazó/);
+    await db.admin();
+    await db.exec(`update public.join_requests set decided_at = now() - interval '8 days'`);
     await db.as(uid('extra'));
     expect(await db.rpc('request_join', { p_code: code })).toMatchObject({ status: 'pending' });
   });
@@ -348,6 +358,12 @@ describe('invitados', () => {
 
   it('valida el nombre: vacío, largo o repetido en el grupo (sin importar mayúsculas)', async () => {
     const { jueves } = await scenario();
+    await db.as(uid('fran'));
+    await db.rpc('update_profile', {
+      p_display_name: 'Fran',
+      p_full_name: 'Fran Pérez',
+      p_avatar_color: '#B9A6F2',
+    });
     await db.as(uid('tomi'));
     await fails(() => db.rpc('add_guest', { p_group_id: jueves, p_name: '   ' }), '22023');
     await fails(() => db.rpc('add_guest', { p_group_id: jueves, p_name: 'x'.repeat(21) }), '22023');
@@ -437,7 +453,7 @@ describe('perfil y grupos', () => {
     await db.admin();
     expect(
       await db.query(`select display_name from public.players where id = $1`, [p.tomi]),
-    ).toEqual([{ display_name: 'tomi' }]);
+    ).toEqual([{ display_name: 'Jugador' }]);
   });
 
   it('create_group deja al creador como admin y valida nombre, color y tope', async () => {
@@ -612,6 +628,159 @@ describe('fechas', () => {
     await db.rpc(
       'record_match',
       matchArgs(jueves, [J[0], J[1]], [J[2], J[3]], { p_played_on: '2020-01-01' }),
+    );
+  });
+});
+
+describe('hallazgos de la auditoría de seguridad', () => {
+  it('si el autor de un partido se da de baja, un miembro común NO puede editarlo ni borrarlo', async () => {
+    const { jueves, J } = await scenario();
+    const m = await record('fran', matchArgs(jueves, [J[0], J[1]], [J[2], J[3]]));
+    await db.as(uid('fran'));
+    await db.rpc('request_account_deletion');
+    await db.admin();
+    await db.rpc('process_account_deletion', { p_profile_id: uid('fran') });
+    await db.admin();
+    expect(await db.query('select created_by from public.matches where id = $1', [m.id])).toEqual([
+      { created_by: null },
+    ]);
+
+    await db.as(uid('nico'));
+    await fails(() => db.rpc('delete_match', { p_match_id: m.id }), '42501');
+    await fails(
+      () => db.rpc('update_match', updateArgs(m.id, matchArgs(jueves, [J[0], J[1]], [J[2], J[3]]))),
+      '42501',
+    );
+    await db.as(uid('tomi')); // el admin sí
+    await db.rpc('delete_match', { p_match_id: m.id });
+  });
+
+  it('si se da de baja el único admin, el grupo pasa a un miembro con cuenta', async () => {
+    const { p, jueves } = await scenario();
+    await db.as(uid('tomi'));
+    await db.rpc('request_account_deletion');
+    await db.admin();
+    await db.rpc('process_account_deletion', { p_profile_id: uid('tomi') });
+    const s = await snapshot('fran');
+    const g = s.groups[0];
+    expect(g.adminIds).toHaveLength(1);
+    expect(g.adminIds[0]).not.toBe(p.tomi);
+    expect(g.memberIds).toContain(p.tomi); // el ex jugador sigue en el historial, como miembro
+    // El nuevo admin puede administrar de verdad.
+    const admin = [uid('fran'), uid('nico'), uid('mati')].find(
+      (_, i) => [p.fran, p.nico, p.mati][i] === g.adminIds[0],
+    )!;
+    await db.as(admin);
+    await db.rpc('rotate_group_invite', { p_group_id: jueves });
+  });
+
+  it('si no queda nadie con cuenta para heredar, la baja no falla y el grupo queda sin admin', async () => {
+    const p = await createUsers(db, ['tomi']);
+    await db.as(uid('tomi'));
+    const g = await db.rpc<string>('create_group', { p_name: 'Solo', p_color: '#DCEB82' });
+    await db.rpc('add_guest', { p_group_id: g, p_name: 'Pipo' });
+    await db.rpc('request_account_deletion');
+    await db.admin();
+    await db.rpc('process_account_deletion', { p_profile_id: uid('tomi') });
+    expect(
+      await db.query('select role from public.group_members where player_id = $1', [p.tomi]),
+    ).toEqual([{ role: 'member' }]);
+    expect(
+      await db.query(`select count(*)::int n from public.group_members where role = 'admin'`),
+    ).toEqual([{ n: 0 }]);
+  });
+
+  it('una función nueva en public nace cerrada; solo las RPC listadas son ejecutables por la app', async () => {
+    await createUsers(db, ['tomi']);
+    await db.admin();
+    await db.exec(`create function public.zz_nueva() returns int language sql as 'select 1'`);
+    for (const role of ['anon', 'authenticated']) {
+      const [r] = await db.query<{ ok: boolean }>(
+        `select has_function_privilege($1, 'public.zz_nueva()', 'execute') ok`,
+        [role],
+      );
+      expect(r.ok).toBe(false);
+    }
+    const open = await db.query<{ name: string }>(
+      `select p.proname name from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.proname <> 'zz_nueva' and has_function_privilege('authenticated', p.oid, 'execute') order by 1`,
+    );
+    expect(open.map((x) => x.name)).toEqual([
+      'add_guest',
+      'app_snapshot',
+      'create_group',
+      'decide_join_request',
+      'delete_match',
+      'get_group_invite',
+      'is_group_admin',
+      'is_group_member',
+      'match_group_id',
+      'my_player_id',
+      'pending_join_requests',
+      'preview_invite',
+      'record_match',
+      'request_account_deletion',
+      'request_join',
+      'rotate_group_invite',
+      'shares_group_with',
+      'update_match',
+      'update_profile',
+    ]);
+    const anon = await db.query<{ name: string }>(
+      `select p.proname name from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute')`,
+    );
+    expect(anon).toEqual([]);
+  });
+
+  it('match_group_id no revela el grupo de un partido ajeno', async () => {
+    const { jueves, J } = await scenario();
+    const m = await record('tomi', matchArgs(jueves, [J[0], J[1]], [J[2], J[3]]));
+    await db.as(uid('lean'));
+    expect(await db.query('select public.match_group_id($1) g', [m.id])).toEqual([{ g: null }]);
+    await db.as(uid('fran'));
+    expect(await db.query('select public.match_group_id($1) g', [m.id])).toEqual([{ g: jueves }]);
+  });
+
+  it('límites de pedidos: 25 pendientes por grupo y 5 por persona', async () => {
+    const { jueves, pibes } = await scenario();
+    await db.as(uid('tomi'));
+    const code = await db.rpc<string>('get_group_invite', { p_group_id: jueves });
+    await db.as(uid('gonza'));
+    const pcode = await db.rpc<string>('get_group_invite', { p_group_id: pibes });
+    const bulk = (i: number) => `00000000-0000-0000-0000-0000000002${String(i).padStart(2, '0')}`;
+    await db.admin();
+    for (let i = 0; i < 26; i++)
+      await db.query('insert into auth.users (id, email) values ($1, $2)', [
+        bulk(i),
+        `x${i}@punto.test`,
+      ]);
+    for (let i = 0; i < 25; i++) {
+      await db.as(bulk(i));
+      await db.rpc('request_join', { p_code: code });
+    }
+    await db.as(bulk(25));
+    await fails(() => db.rpc('request_join', { p_code: code }), '22023', /muchos pedidos/);
+
+    // Una persona con 5 pedidos pendientes en 5 grupos distintos no puede pedir un sexto.
+    for (let i = 0; i < 5; i++) {
+      await db.as(uid('tomi'));
+      const g = await db.rpc<string>('create_group', { p_name: `G${i}`, p_color: '#DCEB82' });
+      const c = await db.rpc<string>('get_group_invite', { p_group_id: g });
+      await db.as(uid('extra'));
+      await db.rpc('request_join', { p_code: c });
+    }
+    await fails(() => db.rpc('request_join', { p_code: pcode }), '22023', /5 pedidos pendientes/);
+  });
+
+  it('un partido no puede traer más de 3 sets', async () => {
+    const { jueves, J } = await scenario();
+    await db.as(uid('tomi'));
+    const big = Array.from({ length: 200 }, () => [6, 0]);
+    await fails(
+      () => db.rpc('record_match', matchArgs(jueves, [J[0], J[1]], [J[2], J[3]], { p_sets: big })),
+      '22023',
+      /máximo 3 sets/,
     );
   });
 });

@@ -40,7 +40,7 @@ $$;
 
 create function public.match_group_id(p_match uuid) returns uuid
 language sql stable security definer set search_path = '' as $$
-  select group_id from public.matches where id = p_match
+  select group_id from public.matches where id = p_match and public.is_group_member(group_id)
 $$;
 
 -- ---------- Utilidades ----------
@@ -72,7 +72,8 @@ $$;
 create function private.handle_new_user() returns trigger
 language plpgsql security definer set search_path = '' as $$
 declare
-  v_name text := left(coalesce(nullif(btrim(split_part(coalesce(new.email, ''), '@', 1)), ''), 'Jugador'), 24);
+  -- Nombre genérico hasta que la persona completa su perfil (no se filtra el mail a los demás).
+  v_name text := 'Jugador';
 begin
   insert into public.profiles (id) values (new.id);
   insert into public.players (profile_id, display_name, full_name, initials, avatar_color, created_by)
@@ -128,10 +129,32 @@ $$;
 -- Solo service_role: anonimiza al jugador (sus partidos quedan para los demás) y borra la cuenta.
 create function public.process_account_deletion(p_profile_id uuid) returns void
 language plpgsql security definer set search_path = '' as $$
+declare
+  v_group uuid;
 begin
   if not exists (select 1 from public.profiles where id = p_profile_id and deletion_requested_at is not null) then
     raise exception 'La cuenta no pidió su baja' using errcode = '22023';
   end if;
+  -- Si era admin, el grupo no puede quedarse sin nadie que lo administre: pasa al miembro con
+  -- cuenta más antiguo. Si no queda nadie con cuenta, el grupo queda solo de lectura.
+  for v_group in
+    select gm.group_id from public.group_members gm
+      join public.players p on p.id = gm.player_id
+     where p.profile_id = p_profile_id and gm.role = 'admin'
+  loop
+    update public.group_members gm set role = 'member'
+      from public.players p
+     where gm.group_id = v_group and gm.player_id = p.id and p.profile_id = p_profile_id;
+    if not exists (select 1 from public.group_members where group_id = v_group and role = 'admin') then
+      update public.group_members set role = 'admin'
+       where group_id = v_group
+         and player_id = (
+           select gm.player_id from public.group_members gm
+             join public.players p on p.id = gm.player_id
+            where gm.group_id = v_group and p.profile_id is not null and p.profile_id <> p_profile_id
+            order by gm.joined_at, gm.player_id limit 1);
+    end if;
+  end loop;
   update public.players
      set profile_id = null, display_name = 'Ex jugador', full_name = 'Ex jugador',
          initials = 'EX', avatar_color = 'transparent'
@@ -184,8 +207,9 @@ begin
   select code into v_code from public.group_invites where group_id = p_group_id and revoked_at is null;
   if v_code is null then
     insert into public.group_invites (group_id, code, created_by)
-    values (p_group_id, upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 12)), auth.uid())
-    returning code into v_code;
+    values (p_group_id, upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 16)), auth.uid())
+    on conflict do nothing; -- otra llamada simultánea ya lo creó
+    select code into v_code from public.group_invites where group_id = p_group_id and revoked_at is null;
   end if;
   return v_code;
 end;
@@ -242,6 +266,21 @@ begin
   if public.is_group_member(v_group) then
     return jsonb_build_object('status', 'member', 'groupId', v_group);
   end if;
+  -- Límites de abuso: pedidos pendientes por grupo y por persona, y espera tras un rechazo.
+  if exists (select 1 from public.join_requests
+              where group_id = v_group and requester_id = v_uid and status = 'rejected'
+                and decided_at > now() - interval '7 days') then
+    raise exception 'Un admin rechazó tu pedido hace poco. Probá de nuevo en unos días.' using errcode = '22023';
+  end if;
+  if not exists (select 1 from public.join_requests
+                  where group_id = v_group and requester_id = v_uid and status = 'pending') then
+    if (select count(*) from public.join_requests where group_id = v_group and status = 'pending') >= 25 then
+      raise exception 'Este grupo ya tiene muchos pedidos pendientes. Avisale a un admin.' using errcode = '22023';
+    end if;
+    if (select count(*) from public.join_requests where requester_id = v_uid and status = 'pending') >= 5 then
+      raise exception 'Ya tenés 5 pedidos pendientes. Esperá a que los resuelvan.' using errcode = '22023';
+    end if;
+  end if;
   insert into public.join_requests (group_id, requester_id) values (v_group, v_uid)
   on conflict (group_id, requester_id) where status = 'pending' do nothing;
   return jsonb_build_object('status', 'pending', 'groupId', v_group);
@@ -276,6 +315,7 @@ begin
   if v_req.status <> 'pending' then
     raise exception 'Ese pedido ya se resolvió' using errcode = '22023';
   end if;
+  perform 1 from public.groups where id = v_req.group_id for update; -- serializa el tope de integrantes
   if p_approve then
     if (select count(*) from public.group_members where group_id = v_req.group_id) >= 40 then
       raise exception 'El grupo llegó al máximo de 40 integrantes' using errcode = '22023';
@@ -306,6 +346,7 @@ begin
   if char_length(v_name) not between 1 and 20 then
     raise exception 'El nombre del invitado tiene que tener entre 1 y 20 letras' using errcode = '22023';
   end if;
+  perform 1 from public.groups where id = p_group_id for update; -- serializa nombre repetido y tope
   if exists (
     select 1 from public.group_members gm join public.players p on p.id = gm.player_id
      where gm.group_id = p_group_id and lower(p.display_name) = lower(v_name)
@@ -397,7 +438,8 @@ begin
   if not found or not public.is_group_member(v_group) then
     raise exception 'Partido no encontrado' using errcode = 'P0002';
   end if;
-  if not (public.is_group_admin(v_group) or v_creator = auth.uid()) then
+  -- coalesce: sin autor (su cuenta se dio de baja) `v_creator = uid` es NULL y NO debe habilitar a nadie.
+  if not (coalesce(public.is_group_admin(v_group), false) or coalesce(v_creator = auth.uid(), false)) then
     raise exception 'Solo quien lo cargó o un admin del grupo puede modificarlo' using errcode = '42501';
   end if;
   return v_group;

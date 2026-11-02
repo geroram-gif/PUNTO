@@ -3,8 +3,10 @@ import {
   groups as seedGroups,
   matches as seedMatches,
   players as seedPlayers,
+  today as seedToday,
 } from '@/lib/demo/seed';
-import type { Group, GroupId, Match, MatchId, Player, PlayerId } from '@/lib/stats';
+import type { Group, GroupId, ISODate, Match, MatchId, Player, PlayerId } from '@/lib/stats';
+import type { PendingRequest, Snapshot } from '@/lib/supabase/snapshot';
 
 import type { DemoConfig } from './config';
 import { matchFromDraft, type Draft } from './draft';
@@ -13,7 +15,22 @@ export const ME: PlayerId = 'tomi';
 
 export type SheetMode = 'match' | 'delete';
 
+/**
+ * Dónde está la sesión: cargando, sin ingresar, con el perfil por completar, lista para usar,
+ * o con un error de carga (reintentable). En modo demo siempre está lista.
+ */
+export type Phase = 'loading' | 'signedOut' | 'needsProfile' | 'ready' | 'error';
+
 export interface PuntoState {
+  /** Mi jugador. */
+  me: PlayerId;
+  /** «Hoy»: fijo en la demo, el día real con cuenta. */
+  today: ISODate;
+  phase: Phase;
+  email: string;
+  loadError: string;
+  deletionRequested: boolean;
+  pendingRequests: PendingRequest[];
   players: Record<PlayerId, Player>;
   groups: Group[];
   matches: Match[];
@@ -47,6 +64,13 @@ export function initialState(config: Pick<DemoConfig, 'scenario' | 'loading'>): 
   const players: Record<PlayerId, Player> = {};
   for (const k of Object.keys(seedPlayers)) players[k] = { ...seedPlayers[k] };
   return {
+    me: ME,
+    today: seedToday,
+    phase: 'ready',
+    email: '',
+    loadError: '',
+    deletionRequested: false,
+    pendingRequests: [],
     players,
     groups,
     matches,
@@ -58,8 +82,21 @@ export function initialState(config: Pick<DemoConfig, 'scenario' | 'loading'>): 
   };
 }
 
+/** Estado de una app con cuenta antes de saber quién es el usuario. */
+export function remoteInitialState(): PuntoState {
+  return {
+    ...initialState({ scenario: 'usuario-nuevo', loading: true }),
+    me: '',
+    phase: 'loading',
+  };
+}
+
 export type Action =
   | { type: 'loaded' }
+  | { type: 'hydrate'; snapshot: Snapshot; email: string; today: ISODate }
+  | { type: 'signedOut' }
+  | { type: 'loadFailed'; message: string }
+  | { type: 'setResult'; id: MatchId | null }
   | { type: 'selectGroup'; groupId: GroupId }
   | { type: 'addMatch'; id: MatchId; draft: Draft }
   | { type: 'editMatch'; id: MatchId; draft: Draft }
@@ -73,6 +110,32 @@ export function reducer(s: PuntoState, a: Action): PuntoState {
   switch (a.type) {
     case 'loaded':
       return { ...s, loading: false };
+    case 'hydrate': {
+      const { snapshot: n } = a;
+      return {
+        ...s,
+        me: n.me,
+        today: a.today,
+        email: a.email,
+        phase: n.onboarded ? 'ready' : 'needsProfile',
+        loading: false,
+        loadError: '',
+        deletionRequested: n.deletionRequested,
+        pendingRequests: n.pendingRequests,
+        players: n.players,
+        groups: n.groups,
+        matches: n.matches,
+        groupId: n.groups.some((g) => g.id === s.groupId) ? s.groupId : (n.groups[0]?.id ?? null),
+        resultId: n.matches.some((m) => m.id === s.resultId) ? s.resultId : null,
+        sheet: s.sheet && n.matches.some((m) => m.id === s.sheet?.matchId) ? s.sheet : null,
+      };
+    }
+    case 'signedOut':
+      return { ...remoteInitialState(), phase: 'signedOut', loading: false };
+    case 'loadFailed':
+      return { ...s, phase: 'error', loading: false, loadError: a.message };
+    case 'setResult':
+      return { ...s, resultId: a.id };
     case 'selectGroup':
       return { ...s, groupId: a.groupId };
     case 'addMatch': {
@@ -83,7 +146,7 @@ export function reducer(s: PuntoState, a: Action): PuntoState {
         id: a.id,
         groupId: a.draft.groupId,
         seq: maxSeq + 1,
-        createdBy: ME,
+        createdBy: s.me,
         edited: false,
         ...data,
       };

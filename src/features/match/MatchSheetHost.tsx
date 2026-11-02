@@ -7,6 +7,7 @@ import { MatchSummary } from '@/components/MatchSummary';
 import { Toast } from '@/components/Toast';
 import { Button, Txt } from '@/components/ui';
 import { usePunto } from '@/lib/store';
+import { toRemoteError } from '@/lib/supabase/errors';
 import { colors, palette, protoColors } from '@/theme';
 
 import { openEdit } from '../navigation';
@@ -29,9 +30,15 @@ export function MatchSheetHost() {
   const onClose = () =>
     isDelete && sheet ? actions.openMatch(sheet.matchId) : actions.closeSheet();
 
-  const del = () => {
+  const del = async () => {
     if (!sheet) return;
-    actions.deleteMatch(sheet.matchId);
+    try {
+      await actions.deleteMatch(sheet.matchId);
+    } catch (e) {
+      actions.closeSheet();
+      actions.showToast('No se pudo borrar. ' + toRemoteError(e).message);
+      return;
+    }
     if (pathname.startsWith('/result')) {
       router.dismissAll();
       router.navigate('/groups' as Href);

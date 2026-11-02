@@ -47,6 +47,16 @@ revoke execute on all functions in schema public from public, anon, authenticate
 alter default privileges in schema public revoke all on tables from public, anon, authenticated;
 alter default privileges in schema public revoke all on sequences from public, anon, authenticated;
 alter default privileges in schema public revoke execute on functions from public, anon, authenticated;
+-- Postgres le da EXECUTE a PUBLIC a toda función nueva; eso solo se saca SIN `in schema`.
+-- Así una función futura nace cerrada y hay que abrirla a propósito con un grant.
+alter default privileges revoke execute on functions from public;
+do $$
+begin
+  if exists (select 1 from pg_roles where rolname = 'supabase_admin') then
+    execute 'alter default privileges for role supabase_admin revoke execute on functions from public';
+    execute 'alter default privileges for role supabase_admin in schema public revoke execute on functions from anon, authenticated';
+  end if;
+end $$;
 
 grant select on public.profiles, public.players, public.groups, public.group_members,
   public.matches, public.match_players, public.match_sets to authenticated;

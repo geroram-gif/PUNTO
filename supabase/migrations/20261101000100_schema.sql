@@ -59,7 +59,7 @@ create index group_members_player_idx on public.group_members (player_id);
 create table public.group_invites (
   id uuid primary key default gen_random_uuid(),
   group_id uuid not null references public.groups (id) on delete cascade,
-  code text not null unique check (code ~ '^[0-9A-F]{12}$'),
+  code text not null unique check (code ~ '^[0-9A-F]{16}$'),
   created_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now(),
   revoked_at timestamptz
@@ -153,6 +153,9 @@ begin
     raise exception 'Los sets tienen que ser una lista' using errcode = '22023';
   end if;
   v_n := jsonb_array_length(p_sets);
+  if v_n > 3 then
+    raise exception 'Un partido tiene como máximo 3 sets' using errcode = '22023';
+  end if;
   for i in 0 .. v_n - 1 loop
     if jsonb_typeof(p_sets -> i) <> 'array' or jsonb_array_length(p_sets -> i) <> 2
        or jsonb_typeof(p_sets -> i -> 0) <> 'number' or jsonb_typeof(p_sets -> i -> 1) <> 'number'
