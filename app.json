@@ -9,7 +9,12 @@
     "userInterfaceStyle": "light",
     "backgroundColor": "#19283B",
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.punto.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "plugins": [
       "expo-router",
@@ -25,6 +30,7 @@
       ],
       "expo-asset",
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "description": "Cada partido cuenta. La app donde tu grupo de pádel guarda su historia."
   }
 }

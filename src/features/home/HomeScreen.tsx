@@ -22,7 +22,7 @@ const SOON = 'Primeros pasos (crear o unirte a un grupo) se diseña en la próxi
 
 /** 01 · Inicio */
 export function HomeScreen() {
-  const { state, actions } = usePunto();
+  const { state, actions, isRemote } = usePunto();
   const c = useCtx();
   const vm = useMemo(() => homeVM(c), [c]);
   const top = useTopInset();
@@ -177,11 +177,14 @@ export function HomeScreen() {
           art={<CourtArt variant="home" />}
           style={{ gap: 18, paddingTop: 10 }}
         >
-          <Button label="Crear un grupo" onPress={() => actions.showToast(SOON)} />
+          <Button
+            label="Crear un grupo"
+            onPress={() => (isRemote ? router.push('/group/new') : actions.showToast(SOON))}
+          />
           <Button
             label="Tengo una invitación"
             tone="outlineLight"
-            onPress={() => actions.showToast(SOON)}
+            onPress={() => (isRemote ? router.push('/join') : actions.showToast(SOON))}
           />
           <Txt s={13} c={colors.text.onDarkSecondary} align="center">
             ¿Alguno no tiene la app? Lo sumás como invitado.
@@ -209,6 +212,26 @@ export function HomeScreen() {
           {vm.groups.map((g) => (
             <GroupCard key={g.id} {...g} onPress={() => openGroup(actions, g.id)} />
           ))}
+          {isRemote ? (
+            <View style={{ flexDirection: 'row', gap: 10, paddingTop: 4 }}>
+              <Button
+                label="Crear un grupo"
+                tone="outlineLight"
+                height={50}
+                size={15}
+                style={{ flex: 1 }}
+                onPress={() => router.push('/group/new')}
+              />
+              <Button
+                label="Tengo una invitación"
+                tone="outlineLight"
+                height={50}
+                size={15}
+                style={{ flex: 1 }}
+                onPress={() => router.push('/join')}
+              />
+            </View>
+          ) : null}
         </View>
       ) : null}
     </ScrollView>

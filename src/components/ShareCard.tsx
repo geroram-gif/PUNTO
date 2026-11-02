@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useRef, useState, type ComponentRef } from 'react';
 import { Share, View } from 'react-native';
+import { captureRef } from 'react-native-view-shot';
 
 import { palette } from '@/theme';
 
@@ -38,20 +39,49 @@ export function ShareCardSheet({
     setMsg('');
     onClose();
   };
+  const cardRef = useRef<ComponentRef<typeof View>>(null);
+  const [busy, setBusy] = useState(false);
+  /** Comparte la tarjeta como imagen (1080×1350). Si no se puede generar, comparte el texto. */
   const share = async () => {
+    setBusy(true);
+    setMsg('');
     try {
-      const r = await Share.share({ message: card.text });
+      let uri: string | null = null;
+      try {
+        if (cardRef.current) {
+          uri = await captureRef(cardRef, {
+            format: 'png',
+            quality: 1,
+            result: 'tmpfile',
+            width: 1080,
+            height: 1350,
+          });
+        }
+      } catch {
+        uri = null; // sin imagen: se comparte el texto
+      }
+      const r = await Share.share(uri ? { url: uri } : { message: card.text });
       setMsg(r.action === Share.sharedAction ? 'Listo, compartido.' : '');
     } catch {
-      setMsg('');
+      setMsg('No se pudo abrir el menú de compartir.');
+    } finally {
+      setBusy(false);
     }
   };
   return (
     <BottomSheet visible={visible} title={title} onClose={close}>
       <View
+        ref={cardRef}
+        collapsable={false}
         accessible
         accessibilityLabel={[card.kicker, card.big.join(' '), card.line].join('. ')}
-        style={{ backgroundColor: card.bg, borderRadius: 24, padding: 20, gap: 8, minHeight: 300 }}
+        style={{
+          backgroundColor: card.bg,
+          borderRadius: 24,
+          padding: 24,
+          gap: 10,
+          aspectRatio: 4 / 5,
+        }}
       >
         <Wordmark size={18} color={card.fg} dot={card.dot} />
         <Txt w={700} s={12} tr={0.08} upper c={card.accent}>
@@ -67,7 +97,16 @@ export function ShareCardSheet({
           }}
         >
           {card.big.map((b, i) => (
-            <Txt key={i} d w={800} s={card.size} lh={1} tr={-0.04} c={card.fg} num>
+            <Txt
+              key={i}
+              d
+              w={800}
+              s={Math.round(card.size * 1.2)}
+              lh={1}
+              tr={-0.04}
+              c={card.fg}
+              num
+            >
               {b}
             </Txt>
           ))}
@@ -79,7 +118,13 @@ export function ShareCardSheet({
           {card.foot}
         </Txt>
       </View>
-      <Button label="Compartir…" tone="dark" onPress={share} />
+      <Button
+        label="Compartir…"
+        tone="dark"
+        loading={busy}
+        disabled={busy}
+        onPress={() => void share()}
+      />
       {msg ? (
         <Txt accessibilityLiveRegion="polite" s={14} lh={1.4} align="center">
           {msg}

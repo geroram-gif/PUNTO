@@ -8,13 +8,14 @@ import { EmptyState } from '@/components/EmptyState';
 import { GroupHeader } from '@/components/GroupHeader';
 import { HeadToHeadSummary } from '@/components/HeadToHeadSummary';
 import { InviteSheet } from '@/components/InviteSheet';
+import { RemoteInviteSheet } from '@/components/RemoteInviteSheet';
 import { LoadingState } from '@/components/LoadingState';
 import { MatchCard } from '@/components/MatchCard';
 import { PlayerStatCard } from '@/components/PlayerStatCard';
 import { ProvisionalRankingRow, RankingTable } from '@/components/RankingRow';
 import { Icon, Txt, useTopInset } from '@/components/ui';
 import { usePunto } from '@/lib/store';
-import { colors, palette } from '@/theme';
+import { colors, palette, radius } from '@/theme';
 
 import { goBack, openH2H } from '../navigation';
 import { useCtx } from '../useCtx';
@@ -79,7 +80,7 @@ export function GroupScreen() {
 }
 
 function GroupBody({ initialTab }: { initialTab: GroupTab }) {
-  const { state, actions } = usePunto();
+  const { state, actions, isRemote } = usePunto();
   const c = useCtx();
   const [tab, setTab] = useState<GroupTab>(initialTab);
   const [showAllDuos, setShowAllDuos] = useState(false);
@@ -112,6 +113,8 @@ function GroupBody({ initialTab }: { initialTab: GroupTab }) {
     );
 
   const sub = colors.text.onLightSecondary;
+  const isAdmin = !!state.groups.find((x) => x.id === g.id)?.adminIds.includes(state.me);
+  const pending = state.pendingRequests.filter((r) => r.groupId === g.id);
   const h2hTo = (id: string) => openH2H(id, g.id, 'group');
 
   return (
@@ -135,6 +138,33 @@ function GroupBody({ initialTab }: { initialTab: GroupTab }) {
       >
         {tab === 'resumen' ? (
           <>
+            {isRemote && isAdmin && pending.length ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${pending.length} ${pending.length === 1 ? 'pedido' : 'pedidos'} para unirse. Revisalos.`}
+                onPress={() => setInvite(true)}
+                style={{
+                  backgroundColor: palette.cream2,
+                  borderRadius: radius.card,
+                  paddingVertical: 14,
+                  paddingHorizontal: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                  minHeight: 56,
+                }}
+              >
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Txt d w={700} s={16}>
+                    {pending.length} {pending.length === 1 ? 'pedido' : 'pedidos'} para unirse
+                  </Txt>
+                  <Txt s={13} c={sub}>
+                    Revisalos para sumarlos al grupo.
+                  </Txt>
+                </View>
+                <Icon name="chevron" size={18} color={palette.navy} />
+              </Pressable>
+            ) : null}
             {g.place ? <PlayerStatCard place={g.place} /> : null}
             {g.duo ? <DuoHighlightCard {...g.duo} onPress={() => setTab('duplas')} /> : null}
             {g.rivalry ? (
@@ -267,12 +297,23 @@ function GroupBody({ initialTab }: { initialTab: GroupTab }) {
           )
         ) : null}
       </ScrollView>
-      <InviteSheet
-        visible={invite}
-        groupId={g.id}
-        groupName={g.name}
-        onClose={() => setInvite(false)}
-      />
+      {isRemote && invite ? (
+        <RemoteInviteSheet
+          visible={invite}
+          groupId={g.id}
+          groupName={g.name}
+          isAdmin={isAdmin}
+          requests={pending}
+          onClose={() => setInvite(false)}
+        />
+      ) : isRemote ? null : (
+        <InviteSheet
+          visible={invite}
+          groupId={g.id}
+          groupName={g.name}
+          onClose={() => setInvite(false)}
+        />
+      )}
     </View>
   );
 }

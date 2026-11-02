@@ -1,4 +1,4 @@
-import { router, usePathname, type Href } from 'expo-router';
+import { usePathname } from 'expo-router';
 import { useMemo } from 'react';
 import { View } from 'react-native';
 
@@ -7,6 +7,7 @@ import { MatchSummary } from '@/components/MatchSummary';
 import { Toast } from '@/components/Toast';
 import { Button, Txt } from '@/components/ui';
 import { usePunto } from '@/lib/store';
+import { toRemoteError } from '@/lib/supabase/errors';
 import { colors, palette, protoColors } from '@/theme';
 
 import { openEdit } from '../navigation';
@@ -20,7 +21,6 @@ import { matchSheetVM } from './vm';
 export function MatchSheetHost() {
   const { state, actions } = usePunto();
   const c = useCtx();
-  const pathname = usePathname();
   const sheet = state.sheet;
   const vm = useMemo(() => matchSheetVM(c, sheet?.matchId ?? null), [c, sheet?.matchId]);
   const visible = !!sheet && !!vm;
@@ -29,12 +29,14 @@ export function MatchSheetHost() {
   const onClose = () =>
     isDelete && sheet ? actions.openMatch(sheet.matchId) : actions.closeSheet();
 
-  const del = () => {
+  const del = async () => {
     if (!sheet) return;
-    actions.deleteMatch(sheet.matchId);
-    if (pathname.startsWith('/result')) {
-      router.dismissAll();
-      router.navigate('/groups' as Href);
+    try {
+      await actions.deleteMatch(sheet.matchId);
+    } catch (e) {
+      actions.closeSheet();
+      actions.showToast('No se pudo borrar. ' + toRemoteError(e).message);
+      return;
     }
     actions.showToast('Partido borrado. Las estadísticas se recalcularon.');
   };
@@ -134,7 +136,7 @@ export function MatchSheetHost() {
               </Txt>
             </View>
           ) : null}
-          <Button label="Sí, borrar partido" tone="dark" onPress={del} />
+          <Button label="Sí, borrar partido" tone="dark" onPress={() => void del()} />
           <Button label="Cancelar" tone="outline" height={50} onPress={onClose} />
         </View>
       ) : null}

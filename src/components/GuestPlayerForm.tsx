@@ -2,7 +2,7 @@ import { Pressable, TextInput, View } from 'react-native';
 
 import { palette, protoColors } from '@/theme';
 
-import { fontFor, Txt } from './ui';
+import { fontFor, Txt, useAnnounce } from './ui';
 
 /** Alta de invitado: juega en el grupo sin cuenta. */
 export function GuestPlayerForm({
@@ -16,6 +16,7 @@ export function GuestPlayerForm({
   onChange: (v: string) => void;
   onSubmit: () => void;
 }) {
+  useAnnounce(error);
   return (
     <View
       style={{

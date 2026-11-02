@@ -1,12 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { ShareCardSheet, shareCardTheme } from '@/components/ShareCard';
 import { StatHighlight } from '@/components/StatHighlight';
-import { Button, Icon, Txt, useTopInset } from '@/components/ui';
+import { Button, CelebrationDots, FadeUp, Icon, Pop, Txt, useTopInset } from '@/components/ui';
 import { usePunto } from '@/lib/store';
 import { palette } from '@/theme';
 
@@ -28,6 +28,15 @@ export function ResultScreen() {
     router.navigate('/groups' as Href);
     actions.showToast('Ranking, duplas y cara a cara actualizados.');
   };
+
+  // Si el partido deja de existir (se borró desde el detalle), esta pantalla ya no tiene sentido:
+  // se vuelve al grupo. No depende de la ruta, solo de los datos.
+  const gone = !vm;
+  useEffect(() => {
+    if (!gone) return;
+    router.dismissAll();
+    router.navigate('/groups' as Href);
+  }, [gone]);
 
   if (!vm) {
     // El partido se borró desde el detalle: volver al grupo.
@@ -74,7 +83,8 @@ export function ResultScreen() {
         accessibilityLiveRegion="polite"
         style={{ paddingTop: 16, paddingHorizontal: 20, paddingBottom: 26, gap: 14 }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <CelebrationDots />
+        <Pop style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <View
             style={{
               width: 32,
@@ -90,8 +100,8 @@ export function ResultScreen() {
           <Txt w={700} s={13} tr={0.08} upper>
             Partido cargado.
           </Txt>
-        </View>
-        <View style={{ gap: 10 }}>
+        </Pop>
+        <FadeUp style={{ gap: 10 }}>
           <View
             style={{ flexDirection: 'row' }}
             importantForAccessibility="no-hide-descendants"
@@ -115,25 +125,27 @@ export function ResultScreen() {
           <Txt accessibilityRole="header" d w={800} s={38} lh={1.05} tr={-0.03}>
             {vm.winnerNames}
           </Txt>
-        </View>
-        <View
-          accessible
-          accessibilityRole="image"
-          accessibilityLabel={vm.scoreAria}
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            columnGap: 18,
-            rowGap: 6,
-            alignItems: 'baseline',
-          }}
-        >
-          {vm.sets.map((s, i) => (
-            <Txt key={i} d w={800} s={vm.scoreSize} lh={0.95} tr={-0.04} num>
-              {s}
-            </Txt>
-          ))}
-        </View>
+        </FadeUp>
+        <Pop delay={150}>
+          <View
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel={vm.scoreAria}
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              columnGap: 18,
+              rowGap: 6,
+              alignItems: 'baseline',
+            }}
+          >
+            {vm.sets.map((s, i) => (
+              <Txt key={i} d w={800} s={vm.scoreSize} lh={0.95} tr={-0.04} num>
+                {s}
+              </Txt>
+            ))}
+          </View>
+        </Pop>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Txt s={15}>a</Txt>
           <View
@@ -158,64 +170,68 @@ export function ResultScreen() {
         </View>
       </View>
 
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: palette.cream,
-          borderTopLeftRadius: 28,
-          borderTopRightRadius: 28,
-          paddingTop: 22,
-          paddingHorizontal: 20,
-          paddingBottom: 40,
-          gap: 12,
-        }}
-      >
-        <StatHighlight
-          big={vm.hasBig ? vm.big : null}
-          title={vm.title}
-          text={vm.text}
-          lines={vm.lines}
-        />
-        <Button
-          label="Compartir resultado"
-          tone="dark"
-          icon={<Icon name="share" size={20} color={palette.cream} />}
-          onPress={() => setShare(true)}
-        />
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Button
-            label="Ver el grupo"
-            tone="outline"
-            height={50}
-            size={15}
-            onPress={toGroup}
-            style={{ flex: 1 }}
+      <FadeUp delay={300} style={{ flex: 1 }}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: palette.cream,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            paddingTop: 22,
+            paddingHorizontal: 20,
+            paddingBottom: 40,
+            gap: 12,
+          }}
+        >
+          <StatHighlight
+            big={vm.hasBig ? vm.big : null}
+            title={vm.title}
+            text={vm.text}
+            lines={vm.lines}
           />
           <Button
-            label="Ver detalle"
-            tone="soft"
-            height={50}
-            size={15}
-            onPress={() => actions.openMatch(vm.matchId)}
-            style={{ flex: 1 }}
+            label="Compartir resultado"
+            tone="dark"
+            icon={<Icon name="share" size={20} color={palette.cream} />}
+            onPress={() => setShare(true)}
           />
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <Button
+              label="Ver el grupo"
+              tone="outline"
+              height={50}
+              size={15}
+              onPress={toGroup}
+              style={{ flex: 1 }}
+            />
+            <Button
+              label="Ver detalle"
+              tone="soft"
+              height={50}
+              size={15}
+              onPress={() => actions.openMatch(vm.matchId)}
+              style={{ flex: 1 }}
+            />
+          </View>
+          {vm.h2h ? (
+            <Button
+              label={vm.h2h.label}
+              tone="lilac"
+              height={50}
+              size={15}
+              onPress={() => {
+                const h = vm.h2h!;
+                actions.selectGroup(vm.groupId);
+                router.dismissAll();
+                router.navigate('/groups' as Href);
+                router.push(
+                  `/groups/h2h?rival=${h.rivalId}&group=${vm.groupId}&from=group` as Href,
+                );
+              }}
+            />
+          ) : null}
         </View>
-        {vm.h2h ? (
-          <Button
-            label={vm.h2h.label}
-            tone="lilac"
-            height={50}
-            size={15}
-            onPress={() => {
-              const h = vm.h2h!;
-              actions.selectGroup(vm.groupId);
-              router.dismissAll();
-              router.navigate('/groups' as Href);
-              router.push(`/groups/h2h?rival=${h.rivalId}&group=${vm.groupId}&from=group` as Href);
-            }}
-          />
-        ) : null}
-      </View>
+      </FadeUp>
 
       <ShareCardSheet
         visible={share}

@@ -3,28 +3,21 @@ import { Pressable, ScrollView, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 
 import { Bar } from '@/components/Bar';
-import { BottomSheet } from '@/components/BottomSheet';
 import { EmptyState } from '@/components/EmptyState';
 import { GroupCard } from '@/components/GroupCard';
 import { LoadingState } from '@/components/LoadingState';
 import { MatchHistoryRow } from '@/components/MatchHistoryRow';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { ScopeBadge } from '@/components/ScopeBadge';
+import { SettingsSheet } from '@/components/SettingsSheet';
 import { StreakCard } from '@/components/StreakCard';
 import { Icon, Label, Txt, useTopInset } from '@/components/ui';
 import { usePunto } from '@/lib/store';
-import { colors, palette, protoColors, radius } from '@/theme';
+import { colors, palette, radius } from '@/theme';
 
 import { openGroup, openH2H } from '../navigation';
 import { useCtx } from '../useCtx';
 import { profileVM } from './vm';
-
-const SETTINGS = [
-  { label: 'Editar perfil', note: 'Próxima iteración', strong: false },
-  { label: 'Privacidad', note: 'Historial global: solo vos', strong: false },
-  { label: 'Cerrar sesión', note: 'Próxima iteración', strong: false },
-  { label: 'Eliminar cuenta', note: 'Con confirmación · próxima iteración', strong: true },
-];
 
 function H2({ children }: { children: string }) {
   return (
@@ -339,44 +332,7 @@ export function ProfileScreen() {
         </View>
       </View>
 
-      <BottomSheet visible={settings} title="Ajustes" onClose={() => setSettings(false)}>
-        <View
-          style={{
-            backgroundColor: palette.white,
-            borderWidth: 1,
-            borderColor: palette.creamLine,
-            borderRadius: 16,
-            paddingVertical: 4,
-            paddingHorizontal: 16,
-          }}
-        >
-          {SETTINGS.map((s) => (
-            <View
-              key={s.label}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-                minHeight: 52,
-                borderBottomWidth: 1,
-                borderBottomColor: protoColors.creamRule,
-              }}
-            >
-              <Txt w={s.strong ? 700 : 500} s={15}>
-                {s.label}
-              </Txt>
-              <Txt w={600} s={12} c={palette.slate} align="right" style={{ flexShrink: 1 }}>
-                {s.note}
-              </Txt>
-            </View>
-          ))}
-        </View>
-        <Txt s={13} lh={1.45} c={colors.text.onLightSecondary}>
-          Ajustes, privacidad y eliminar cuenta se diseñan en la próxima iteración. Borrar la cuenta
-          va a pedir confirmación explícita.
-        </Txt>
-      </BottomSheet>
+      {settings ? <SettingsSheet visible onClose={() => setSettings(false)} /> : null}
     </ScrollView>
   );
 }

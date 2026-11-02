@@ -36,7 +36,12 @@ export function matchSheetVM(c: Ctx, id: MatchId | null): MatchSheetVM | null {
     meta: capitalize(fmtLong(sm.date)) + ' · ' + c.gname(smg),
     rows: [
       { k: 'Formato', v: FORMAT_LABEL[sm.format] },
-      { k: 'Cargado por', v: c.pl(sm.createdBy).name + (sm.edited ? ' · corregido' : '') },
+      {
+        k: 'Cargado por',
+        v:
+          (sm.createdBy ? c.pl(sm.createdBy).name : 'Ex jugador') +
+          (sm.edited ? ' · corregido' : ''),
+      },
       { k: 'Pareja A', v: c.names(sm.teamA) },
       { k: 'Pareja B', v: c.names(sm.teamB) },
     ],

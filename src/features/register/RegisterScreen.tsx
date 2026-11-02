@@ -1,7 +1,7 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { StatusBar } from 'expo-status-bar';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -17,6 +17,7 @@ import { SetScoreInput } from '@/components/SetScoreInput';
 import { TeamAssignment } from '@/components/TeamAssignment';
 import { Button, Icon, Label, Txt, useTopInset } from '@/components/ui';
 import { blankDraft, usePunto, type Draft } from '@/lib/store';
+import { toRemoteError } from '@/lib/supabase/errors';
 import { colors, palette, protoColors, radius } from '@/theme';
 
 import { useCtx } from '../useCtx';
@@ -90,7 +91,7 @@ function Chip({
 
 /** 03 · Registrar partido (o corregir uno, con `?edit=<id>`). */
 export function RegisterScreen() {
-  const { state, config, actions, today } = usePunto();
+  const { state, actions, today } = usePunto();
   const c = useCtx();
   const params = useLocalSearchParams<{ group?: string; edit?: string }>();
   const editingId = params.edit ?? null;
@@ -104,10 +105,8 @@ export function RegisterScreen() {
   });
   const [review, setReview] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [netError, setNetError] = useState(false);
-  const failedOnce = useRef(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useEffect(() => () => clearTimeout(timer.current), []);
+  /** Mensaje si el último intento de guardar falló (lo cargado se conserva para reintentar). */
+  const [saveError, setSaveError] = useState<{ message: string; network: boolean } | null>(null);
 
   const vm = useMemo(() => registerVM(c, draft, !!editingId), [c, draft, editingId]);
 
@@ -143,11 +142,16 @@ export function RegisterScreen() {
 
   const update = (f: (d: Draft) => Draft) => setDraft((d) => (d ? f(d) : d));
 
-  const addGuest = () => {
+  const addGuest = async () => {
     const err = guestError(c, draft.groupId, draft.guestName);
     if (err) return update((d) => ({ ...d, guestErr: err }));
     const name = draft.guestName.trim();
-    const id = actions.addGuest(draft.groupId, name);
+    let id: string;
+    try {
+      id = await actions.addGuest(draft.groupId, name);
+    } catch (e) {
+      return update((d) => ({ ...d, guestErr: toRemoteError(e).message }));
+    }
     update((d) => {
       const slots = d.slots.slice();
       const idx = slots.indexOf(null);
@@ -158,33 +162,32 @@ export function RegisterScreen() {
     actions.showToast(name + ' se sumó a ' + (g ? c.gname(g) : '') + ' como invitado.');
   };
 
-  const confirmSave = () => {
+  const confirmSave = async () => {
     if (saving) return;
     setSaving(true);
-    setNetError(false);
-    timer.current = setTimeout(() => {
-      if (config.netError && !failedOnce.current) {
-        failedOnce.current = true;
-        setSaving(false);
-        setNetError(true);
-        return;
-      }
-      setSaving(false);
-      setReview(false);
+    setSaveError(null);
+    try {
       if (editingId) {
-        actions.editMatch(editingId, draft);
+        await actions.editMatch(editingId, draft);
+        setReview(false);
         router.back();
         actions.showToast('Partido corregido. Ranking, rachas y duplas recalculados.');
       } else {
-        const id = actions.addMatch(draft);
+        const id = await actions.addMatch(draft);
+        setReview(false);
         router.replace(`/result/${id}` as Href);
       }
-    }, config.saveMs);
+    } catch (e) {
+      const err = toRemoteError(e);
+      setSaveError({ message: err.message, network: err.kind === 'network' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const confirmLabel = saving
     ? 'Guardando…'
-    : netError
+    : saveError
       ? 'Reintentar'
       : editingId
         ? 'Guardar corrección'
@@ -333,7 +336,7 @@ export function RegisterScreen() {
               name={draft.guestName}
               error={draft.guestErr}
               onChange={(v) => update((d) => ({ ...d, guestName: v, guestErr: '' }))}
-              onSubmit={addGuest}
+              onSubmit={() => void addGuest()}
             />
           ) : null}
           {draft.notice ? (
@@ -424,7 +427,7 @@ export function RegisterScreen() {
           size={17}
           disabled={!vm.ok}
           onPress={() => {
-            setNetError(false);
+            setSaveError(null);
             setReview(true);
           }}
         />
@@ -436,7 +439,7 @@ export function RegisterScreen() {
         locked={saving}
         onClose={() => {
           setReview(false);
-          setNetError(false);
+          setSaveError(null);
         }}
       >
         {vm.review ? (
@@ -449,14 +452,16 @@ export function RegisterScreen() {
                 { name: vm.review.b, win: vm.review.winB, sets: vm.review.setsB },
               ]}
             />
-            {netError ? <ErrorState /> : null}
+            {saveError ? (
+              <ErrorState message={saveError.network ? undefined : saveError.message} />
+            ) : null}
             <Button
               label={confirmLabel}
               height={56}
               size={17}
               loading={saving}
               disabled={saving}
-              onPress={confirmSave}
+              onPress={() => void confirmSave()}
             />
             <Button
               label="Editar"
@@ -465,7 +470,7 @@ export function RegisterScreen() {
               disabled={saving}
               onPress={() => {
                 setReview(false);
-                setNetError(false);
+                setSaveError(null);
               }}
             />
           </>

@@ -1,0 +1,36 @@
+# Configuración del CLI de Supabase para desarrollo local (`supabase start`).
+# AVISO: escrita sin el CLI a mano; correr `supabase start` y revisar que lo tome sin warnings.
+# En el proyecto en la nube estos ajustes se cargan a mano en el panel (ver docs/supabase.md).
+project_id = "punto"
+
+[api]
+enabled = true
+schemas = ["public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+major_version = 17
+
+[auth]
+enabled = true
+site_url = "punto://"
+additional_redirect_urls = ["punto://"]
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = true
+# El ingreso es por código (OTP) de 6 dígitos, no por link: no hay que abrir links en el celular.
+enable_confirmations = false
+otp_length = 6
+otp_expiry = 3600
+max_frequency = "30s"
+
+[auth.email.template.confirmation]
+subject = "Tu código de PUNTO"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.magic_link]
+subject = "Tu código de PUNTO"
+content_path = "./supabase/templates/magic_link.html"
