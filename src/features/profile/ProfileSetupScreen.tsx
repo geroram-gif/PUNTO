@@ -1,6 +1,14 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useRef, useState, type ComponentRef } from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { Button, Icon, Label, TextField, Txt, useTopInset } from '@/components/ui';
@@ -35,18 +43,21 @@ export function ProfileSetupScreen({ editing = false }: { editing?: boolean }) {
       : palette.coral,
   );
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [displayError, setDisplayError] = useState('');
+  const [fullError, setFullError] = useState('');
+  const [saveError, setSaveError] = useState('');
+  const fullRef = useRef<ComponentRef<typeof TextInput>>(null);
 
   const shown = initialsOf(full || display) || '?';
 
   const save = async () => {
     const d = display.trim();
     const f = full.trim();
-    if (!d) return setError('Escribí cómo te dicen.');
-    if (d.length > 24) return setError('El nombre corto puede tener hasta 24 letras.');
-    if (!f) return setError('Escribí tu nombre completo.');
+    if (!d) return setDisplayError('Escribí cómo te dicen.');
+    if (d.length > 24) return setDisplayError('El nombre corto puede tener hasta 24 letras.');
+    if (!f) return setFullError('Escribí tu nombre completo.');
     setBusy(true);
-    setError('');
+    setSaveError('');
     try {
       await actions.saveProfile({ displayName: d, fullName: f, avatarColor: color });
       if (editing) {
@@ -55,7 +66,7 @@ export function ProfileSetupScreen({ editing = false }: { editing?: boolean }) {
       }
       // Primera vez: al quedar el perfil completo la sesión pasa a «lista» y se muestra Inicio.
     } catch (e) {
-      setError(toRemoteError(e).message);
+      setSaveError(toRemoteError(e).message);
     } finally {
       setBusy(false);
     }
@@ -66,8 +77,10 @@ export function ProfileSetupScreen({ editing = false }: { editing?: boolean }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{ flex: 1, backgroundColor: palette.cream }}
     >
+      <StatusBar style="dark" />
       <ScrollView
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         contentContainerStyle={{
           paddingTop: top,
           paddingHorizontal: 20,
@@ -136,20 +149,24 @@ export function ProfileSetupScreen({ editing = false }: { editing?: boolean }) {
           value={display}
           onChangeText={(v) => {
             setDisplay(v);
-            setError('');
+            setDisplayError('');
           }}
           placeholder="Ej.: Tomi"
           maxLength={24}
           autoCapitalize="words"
           autoComplete="nickname"
           returnKeyType="next"
+          blurOnSubmit={false}
+          error={displayError}
+          onSubmitEditing={() => fullRef.current?.focus()}
         />
         <TextField
           label="Nombre completo"
           value={full}
           onChangeText={(v) => {
             setFull(v);
-            setError('');
+            setFullError('');
+            setSaveError('');
           }}
           placeholder="Ej.: Tomás González"
           maxLength={60}
@@ -157,7 +174,8 @@ export function ProfileSetupScreen({ editing = false }: { editing?: boolean }) {
           autoComplete="name"
           textContentType="name"
           returnKeyType="done"
-          error={error}
+          error={fullError || saveError}
+          onSubmitEditing={() => void save()}
         />
 
         <View style={{ gap: 10 }}>
@@ -193,7 +211,7 @@ export function ProfileSetupScreen({ editing = false }: { editing?: boolean }) {
                       borderRadius: 19,
                       backgroundColor: c,
                       borderWidth: c === palette.cream2 ? 1 : 0,
-                      borderColor: palette.creamLine,
+                      borderColor: palette.slate,
                     }}
                   />
                 </Pressable>
@@ -210,6 +228,18 @@ export function ProfileSetupScreen({ editing = false }: { editing?: boolean }) {
           size={17}
           onPress={() => void save()}
         />
+        {!editing ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Entrar con otro mail"
+            onPress={() => void actions.signOut().catch(() => {})}
+            style={{ minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Txt w={600} s={14} style={{ textDecorationLine: 'underline' }}>
+              ¿Te equivocaste de mail? Entrá con otro
+            </Txt>
+          </Pressable>
+        ) : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );

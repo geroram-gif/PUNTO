@@ -51,12 +51,12 @@ export function SignInScreen() {
     }
   };
 
-  const verify = async () => {
-    if (normalizeCode(code).length < 6) return setError('El código tiene 6 dígitos.');
+  const verify = async (value = code) => {
+    if (normalizeCode(value).length < 6) return setError('El código tiene 6 dígitos.');
     setBusy(true);
     setError('');
     try {
-      await actions.verifyCode(email, code);
+      await actions.verifyCode(email, value);
       // Al entrar la sesión cambia y la app sigue sola (perfil o inicio).
     } catch (e) {
       setError(toRemoteError(e).message);
@@ -71,6 +71,7 @@ export function SignInScreen() {
     >
       <ScrollView
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         contentContainerStyle={{
           flexGrow: 1,
           paddingTop: top + 12,
@@ -128,6 +129,8 @@ export function SignInScreen() {
               onChangeText={(v) => {
                 setCode(v);
                 setError('');
+                // El teclado numérico de iOS no tiene tecla de «Listo»: al completar los 6 dígitos se entra.
+                if (normalizeCode(v).length === 6 && !busy) void verify(v);
               }}
               error={error}
               placeholder="123456"

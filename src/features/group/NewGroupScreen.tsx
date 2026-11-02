@@ -1,4 +1,5 @@
 import { router, type Href } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 
@@ -46,8 +47,10 @@ export function NewGroupScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{ flex: 1, backgroundColor: palette.cream }}
     >
+      <StatusBar style="dark" />
       <ScrollView
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         contentContainerStyle={{
           paddingTop: top,
           paddingHorizontal: 20,
@@ -141,7 +144,7 @@ export function NewGroupScreen() {
                       borderRadius: 10,
                       backgroundColor: g.color,
                       borderWidth: g.color === palette.cream2 ? 1 : 0,
-                      borderColor: palette.creamLine,
+                      borderColor: palette.slate,
                     }}
                   />
                 </Pressable>

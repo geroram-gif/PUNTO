@@ -3,7 +3,7 @@
  * Supabase): ingreso por código, perfil, grupo, invitación, primer partido y estadísticas
  * persistentes. Lo único simulado es el envío del mail (código fijo 123456).
  */
-import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
+import { fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
 
 import type { Backend } from '@/lib/backend';
 import { blankDraft } from '@/lib/store';
@@ -120,7 +120,7 @@ function visibleTexts(): string[] {
 }
 const see = async (text: string | RegExp) => {
   try {
-    expect((await screen.findAllByText(text, {}, { timeout: 25000 }))[0]).toBeVisible();
+    await waitFor(() => expect(screen.getAllByText(text)[0]).toBeVisible(), { timeout: 25000 });
   } catch (e) {
     throw new Error(`No se vio ${String(text)}. En pantalla: ${visibleTexts().join(' | ')}`, {
       cause: e,
@@ -383,4 +383,22 @@ describe('usuario nuevo', () => {
     await press('Ajustes');
     await see('Baja solicitada');
   }, 90000);
+
+  it('quien entra con el mail equivocado puede salir del armado de perfil', async () => {
+    await db.admin();
+    await db.query('insert into auth.users (id, email) values ($1, $2)', [
+      u(30),
+      'equivocado@punto.test',
+    ]);
+    boot({ userId: u(30), email: 'equivocado@punto.test' });
+    await renderRouter(APP, { initialUrl: '/' });
+    await see('Armá tu perfil.');
+    await type('Nombre completo', 'Alguien');
+    await press('Guardar y seguir');
+    await see('Escribí cómo te dicen.'); // el error va en el campo que corresponde
+    expect(screen.queryByText('Escribí tu nombre completo.')).toBeNull();
+    await press('Entrar con otro mail');
+    await see('Cada partido cuenta.');
+    expect(user).toBeNull();
+  }, 60000);
 });

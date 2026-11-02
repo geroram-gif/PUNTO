@@ -7,7 +7,7 @@ import { toRemoteError } from '@/lib/supabase/errors';
 import { colors, palette, protoColors } from '@/theme';
 
 import { BottomSheet } from './BottomSheet';
-import { Button, Icon, Txt } from './ui';
+import { Button, Icon, Txt, useAnnounce } from './ui';
 
 type Step = 'menu' | 'signOut' | 'delete';
 
@@ -42,6 +42,7 @@ export function SettingsSheet({ visible, onClose }: { visible: boolean; onClose:
   const [step, setStep] = useState<Step>('menu');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  useAnnounce(error);
 
   const run = async (f: () => Promise<unknown>, after?: () => void) => {
     setBusy(true);

@@ -56,7 +56,7 @@ describe('recorrido completo', () => {
     await waitFor(() => expect(screen).toHavePathname('/result/n1'), { timeout: 3000 });
 
     // Resultado: racha, % global y cara a cara recalculados
-    expect(screen.getByText('Partido cargado.')).toBeVisible();
+    await waitFor(() => expect(screen.getByText('Partido cargado.')).toBeVisible());
     expect(screen.getByText('Tomi y Fran')).toBeVisible();
     expect(screen.getByText('Sumaste 4 victorias seguidas.')).toBeVisible();
     expect(screen.getByText('Tu % global: 64% → 65% · 23 partidos')).toBeVisible();

@@ -1,9 +1,11 @@
+import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 
 import { GroupBadge } from '@/components/GroupCard';
-import { Button, Icon, TextField, Txt, useTopInset } from '@/components/ui';
+import { Button, Icon, TextField, Txt, useAnnounce, useTopInset } from '@/components/ui';
 import { usePunto } from '@/lib/store';
 import type { JoinPreview } from '@/lib/supabase/api';
 import { toRemoteError } from '@/lib/supabase/errors';
@@ -21,6 +23,7 @@ export function JoinScreen() {
   const [step, setStep] = useState<Step>({ kind: 'code' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  useAnnounce(error);
 
   const look = async (value = code) => {
     if (!value.trim()) return setError('Pegá el código que te pasaron.');
@@ -68,8 +71,10 @@ export function JoinScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{ flex: 1, backgroundColor: palette.cream }}
     >
+      <StatusBar style="dark" />
       <ScrollView
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         contentContainerStyle={{
           paddingTop: top,
           paddingHorizontal: 20,
@@ -124,6 +129,23 @@ export function JoinScreen() {
               error={error}
               onSubmitEditing={() => void look()}
             />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Pegar el código"
+              onPress={() =>
+                void Clipboard.getStringAsync().then((t) => {
+                  if (t.trim()) {
+                    setCode(t.trim());
+                    setError('');
+                  }
+                })
+              }
+              style={{ minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' }}
+            >
+              <Txt w={600} s={14} style={{ textDecorationLine: 'underline' }}>
+                Pegar el código
+              </Txt>
+            </Pressable>
             <Button
               label="Buscar grupo"
               loading={busy}
@@ -193,7 +215,10 @@ export function JoinScreen() {
               label="Buscar otro"
               tone="outline"
               height={50}
-              onPress={() => setStep({ kind: 'code' })}
+              onPress={() => {
+                setError('');
+                setStep({ kind: 'code' });
+              }}
             />
           </>
         ) : null}

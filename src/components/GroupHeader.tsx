@@ -78,7 +78,7 @@ export function GroupHeader({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Invitar"
-          accessibilityHint="Abre el link de invitación"
+          accessibilityHint="Abre la invitación del grupo"
           onPress={onInvite}
           style={{
             height: 44,

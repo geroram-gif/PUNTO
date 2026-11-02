@@ -6,3 +6,5 @@ export { Wordmark } from './Wordmark';
 export { useTopInset } from './insets';
 export { useReduceMotion } from './motion';
 export { TextField } from './TextField';
+export { Pop, FadeUp, CelebrationDots } from './Motion';
+export { useAnnounce } from './announce';

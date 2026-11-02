@@ -9,7 +9,7 @@ import { avatarTextColor, colors, palette, radius } from '@/theme';
 
 import { BottomSheet } from './BottomSheet';
 import { PlayerAvatar } from './PlayerAvatar';
-import { Button, Txt } from './ui';
+import { Button, Txt, useAnnounce } from './ui';
 
 /** 3FA912BC77D04E1A → 3FA9-12BC-77D0-4E1A */
 export const formatCode = (c: string) => c.replace(/(.{4})(?=.)/g, '$1-');
@@ -37,6 +37,8 @@ export function RemoteInviteSheet({
   const [code, setCode] = useState('');
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  useAnnounce(msg);
 
   useEffect(() => {
     if (!visible) return;
@@ -48,7 +50,7 @@ export function RemoteInviteSheet({
     return () => {
       alive = false;
     };
-  }, [visible, groupId, actions]);
+  }, [visible, groupId, actions, attempt]);
 
   const message = `Sumate a ${groupName} en PUNTO. Abrí la app, tocá «Tengo una invitación» y pegá este código: ${formatCode(code)}`;
   const run = async (f: () => Promise<unknown>, ok?: string) => {
@@ -87,7 +89,13 @@ export function RemoteInviteSheet({
           Código de invitación
         </Txt>
         <Txt
-          accessibilityLabel={code ? `Código ${code.split('').join(' ')}` : 'Cargando el código'}
+          accessibilityLabel={
+            code
+              ? `Código ${code.split('').join(' ')}`
+              : msg
+                ? 'No se pudo cargar el código'
+                : 'Cargando el código'
+          }
           w={700}
           s={18}
           tr={0.04}
@@ -97,6 +105,15 @@ export function RemoteInviteSheet({
           {code ? formatCode(code) : '…'}
         </Txt>
       </View>
+      {!code && msg ? (
+        <Button
+          label="Reintentar"
+          tone="soft"
+          height={48}
+          size={14}
+          onPress={() => setAttempt((n) => n + 1)}
+        />
+      ) : null}
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <Button
           label="Copiar código"
