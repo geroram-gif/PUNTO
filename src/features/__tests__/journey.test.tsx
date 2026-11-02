@@ -187,4 +187,26 @@ describe('recorrido completo', () => {
     const sheet = screen.getByText('Detalle del partido');
     expect(within(sheet).queryByText('Borrar')).toBeNull();
   });
+
+  it('borrar el partido desde Resultado vuelve al grupo con todo recalculado', async () => {
+    await renderRouter(APP_DIR, { initialUrl: '/match/new?group=jueves' });
+    await registerTomiFranVsNicoLean();
+    await press('Confirmar y guardar');
+    await waitFor(() => expect(screen).toHavePathname('/result/n1'), { timeout: 3000 });
+    await press('Ver detalle');
+    await press('Borrar');
+    await press('Sí, borrar partido');
+    await waitFor(() => expect(screen).toHavePathname('/groups'));
+    await waitFor(() => expect(screen.getByText('8 miembros · 24 partidos')).toBeVisible());
+    expect(screen.getByText('Partido borrado. Las estadísticas se recalcularon.')).toBeVisible();
+  });
+
+  it('borrar desde Inicio se queda en Inicio', async () => {
+    await renderRouter(APP_DIR, { initialUrl: '/' });
+    await press(/^Tomi y Fran ganaron a Nico y Lean, 6-4, 6-3/);
+    await press('Borrar');
+    await press('Sí, borrar partido');
+    expect(screen.getByText('Partido borrado. Las estadísticas se recalcularon.')).toBeVisible();
+    expect(screen).toHavePathname('/');
+  });
 });

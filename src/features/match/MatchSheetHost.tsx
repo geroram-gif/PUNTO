@@ -1,4 +1,4 @@
-import { router, usePathname, type Href } from 'expo-router';
+import { usePathname } from 'expo-router';
 import { useMemo } from 'react';
 import { View } from 'react-native';
 
@@ -21,7 +21,6 @@ import { matchSheetVM } from './vm';
 export function MatchSheetHost() {
   const { state, actions } = usePunto();
   const c = useCtx();
-  const pathname = usePathname();
   const sheet = state.sheet;
   const vm = useMemo(() => matchSheetVM(c, sheet?.matchId ?? null), [c, sheet?.matchId]);
   const visible = !!sheet && !!vm;
@@ -38,10 +37,6 @@ export function MatchSheetHost() {
       actions.closeSheet();
       actions.showToast('No se pudo borrar. ' + toRemoteError(e).message);
       return;
-    }
-    if (pathname.startsWith('/result')) {
-      router.dismissAll();
-      router.navigate('/groups' as Href);
     }
     actions.showToast('Partido borrado. Las estadísticas se recalcularon.');
   };

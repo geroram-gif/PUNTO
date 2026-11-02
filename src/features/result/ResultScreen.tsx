@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
 import { PlayerAvatar } from '@/components/PlayerAvatar';
@@ -28,6 +28,15 @@ export function ResultScreen() {
     router.navigate('/groups' as Href);
     actions.showToast('Ranking, duplas y cara a cara actualizados.');
   };
+
+  // Si el partido deja de existir (se borró desde el detalle), esta pantalla ya no tiene sentido:
+  // se vuelve al grupo. No depende de la ruta, solo de los datos.
+  const gone = !vm;
+  useEffect(() => {
+    if (!gone) return;
+    router.dismissAll();
+    router.navigate('/groups' as Href);
+  }, [gone]);
 
   if (!vm) {
     // El partido se borró desde el detalle: volver al grupo.
